@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.clock",
+  "name": "Whiterose Clock",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Minimal clock with a softly pulsing separator. Click for the date.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose clock",
+    "description": "HH mm with pulsing separator; click toggles date",
+    "category": "Time",
+    "allowMultiple": true,
+    "defaults": {
+      "format": "HH:mm",
+      "formatAlt": "ddd d MMM  HH:mm"
+    },
+    "schema": [
+      { "key": "format", "type": "string", "label": "Time format" },
+      { "key": "formatAlt", "type": "string", "label": "Alternate format" }
+    ]
+  }
+}

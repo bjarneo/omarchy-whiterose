@@ -1,0 +1,43 @@
+mode = "dark"
+
+# Whiterose v7: monochrome, adopted from the aether-generated
+# "abstract-black-white-maze-pattern-deep" theme the user was running,
+# with contrast lifted (original fg measured 4.7:1; this fg is 10.7:1).
+# No hue anywhere: identity is near-white on graphite, and attention is
+# a white flash. The ANSI ramp is deliberately grayscale like the
+# source theme, spread wider for legibility.
+#
+# Contrast on bg: fg 10.7:1, dark_fg 6.9:1, muted 5.2:1, accent 13.6:1,
+# white attention 15.3:1.
+
+accent = "#e8e8e8"
+
+bg = "#1e1e1e"
+dark_bg = "#161616"
+darker_bg = "#101010"
+lighter_bg = "#2a2a2a"
+selection = "#3a3a3a"
+muted = "#909090"
+dark_fg = "#a6a6a6"
+fg = "#cfcfcf"
+light_fg = "#dddddd"
+bright_fg = "#ececec"
+
+red = "#b4b4b4"
+yellow = "#c4c4c4"
+orange = "#bcbcbc"
+green = "#d2d2d2"
+cyan = "#aaaaaa"
+blue = "#cacaca"
+magenta = "#a4a4a4"
+brown = "#8c8c8c"
+
+bright_red = "#d0d0d0"
+bright_yellow = "#e0e0e0"
+bright_green = "#eaeaea"
+bright_cyan = "#c6c6c6"
+bright_blue = "#dcdcdc"
+bright_magenta = "#bebebe"
+
+# Near-white into mid-gray; the only "color" is light itself.
+hyprland_active_border = "rgba(e8e8e8ee) rgba(8a8a8aee) 45deg"

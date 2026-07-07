@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.bluetooth",
+  "name": "Whiterose Bluetooth",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Bluetooth state glyph. Click toggles the adapter.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose bluetooth",
+    "description": "Adapter state; click toggles power",
+    "category": "Network",
+    "allowMultiple": false
+  }
+}

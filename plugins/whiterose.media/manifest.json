@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.media",
+  "name": "Whiterose Media",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Now playing (MPRIS): click play/pause, right click next. Hidden when idle.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose media",
+    "description": "Now-playing title with playback controls",
+    "category": "Media",
+    "allowMultiple": false,
+    "defaults": { "maxLength": 28 },
+    "schema": [
+      { "key": "maxLength", "type": "number", "label": "Max title length", "min": 10, "max": 80, "step": 2 }
+    ]
+  }
+}

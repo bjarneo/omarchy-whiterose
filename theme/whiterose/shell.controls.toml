@@ -1,0 +1,28 @@
+# Quiet chrome, loud focus: hairline borders stay dim until the cursor
+# or keyboard arrives, then near-white takes over.
+normal-color        = "#cfcfcf"
+normal-fill-alpha   = 0.03
+normal-border       = "#cfcfcf"
+normal-border-width = 1
+normal-border-alpha = 0.2
+
+hover-cursor-color        = "#e8e8e8"
+hover-cursor-fill-alpha   = 0.08
+hover-cursor-border       = "#e8e8e8"
+hover-cursor-border-width = 1
+hover-cursor-border-alpha = 0.55
+
+focus-color        = "#e8e8e8"
+focus-fill-alpha   = 0.08
+focus-border       = "#e8e8e8"
+focus-border-width = 1
+focus-border-alpha = 0.7
+
+selected-color        = "#e8e8e8"
+selected-fill-alpha   = 0.12
+selected-border       = "#e8e8e8"
+selected-border-width = 0
+selected-border-alpha = 1.0
+
+pressed-fill-alpha   = 0.2
+selection-fill-alpha = 0.35

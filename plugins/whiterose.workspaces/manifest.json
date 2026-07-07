@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.workspaces",
+  "name": "Whiterose Workspaces",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Minimal dash-style Hyprland workspace indicators.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose workspaces",
+    "description": "Dash indicators for Hyprland workspaces",
+    "category": "Compositor",
+    "allowMultiple": false
+  }
+}

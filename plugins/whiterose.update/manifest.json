@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.update",
+  "name": "Whiterose Update",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Shows an accented glyph only when an Omarchy update is available.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose update",
+    "description": "Update indicator; click to update",
+    "category": "System",
+    "allowMultiple": false
+  }
+}

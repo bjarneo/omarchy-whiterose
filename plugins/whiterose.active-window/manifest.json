@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.active-window",
+  "name": "Whiterose Active Window",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Focused window title, dimmed and elided.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose active window",
+    "description": "Title of the focused window",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaults": { "maxWidth": 320 },
+    "schema": [
+      { "key": "maxWidth", "type": "number", "label": "Max width (px)", "min": 80, "max": 900, "step": 20 }
+    ]
+  }
+}

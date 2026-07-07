@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.power",
+  "name": "Whiterose Power",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Power button that opens the Whiterose system menu.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose power",
+    "description": "Opens the system section of the Whiterose menu",
+    "category": "System",
+    "allowMultiple": false
+  }
+}

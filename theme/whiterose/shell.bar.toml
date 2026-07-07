@@ -1,0 +1,10 @@
+# Whiterose bar: a subtle dark veil over the wallpaper (45% alpha).
+# Attention is a white flash; in a monochrome theme the alarm is
+# brightness, not hue.
+background       = "#161616"
+background-alpha = 0.45
+text             = "#cfcfcf"
+active           = "#ffffff"
+scale-with-font  = true
+size-horizontal  = 28
+size-vertical    = 30

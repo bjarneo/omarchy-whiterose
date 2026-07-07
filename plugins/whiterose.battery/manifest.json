@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.battery",
+  "name": "Whiterose Battery",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Battery glyph and percentage. Hidden on machines without a battery.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose battery",
+    "description": "Charge state; turns urgent when low",
+    "category": "System",
+    "allowMultiple": false,
+    "defaults": { "warnAt": 15 },
+    "schema": [
+      { "key": "warnAt", "type": "number", "label": "Warn below (%)", "min": 5, "max": 50, "step": 5 }
+    ]
+  }
+}

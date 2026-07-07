@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.omni",
+  "name": "Whiterose Omni Button",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Slash button that toggles the Omni command palette overlay.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose omni",
+    "description": "Opens the Omni palette",
+    "category": "Compositor",
+    "allowMultiple": false
+  }
+}
