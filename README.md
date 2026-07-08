@@ -10,8 +10,9 @@ comes from the active theme, so it restyles itself when you switch themes.
 git clone <this repo> ~/Code/whiterose-omarchy
 cd ~/Code/whiterose-omarchy
 ./install.sh                # plugins + themes, choose a theme
-./install.sh --theme cyan   # apply whiterose-cyan without prompting
-./install.sh --bar          # also replace the bar layout (backs up shell.json)
+./install.sh --theme cyan    # apply whiterose-cyan without prompting
+./install.sh --theme gruvbox # apply whiterose-gruvbox without prompting
+./install.sh --bar           # also replace the bar layout (backs up shell.json)
 ```
 
 Open the menu:
@@ -44,7 +45,9 @@ The stock `omarchy.tray` stays: tray icons are app-owned, there is nothing
 to restyle. The main Whiterose theme ships translucent bar chrome, hairline
 controls, and a fully monochrome palette: graphite surfaces, a gray accent,
 a white flash for alarms, and a grayscale terminal ramp. Accent variants
-keep that palette and override only the accent color.
+keep that palette and override only the accent color. `whiterose-gruvbox`
+keeps the same gray surfaces and wallpaper, but swaps in a muted Gruvbox
+color ramp that still sits quietly on gray.
 
 ## Keybindings
 

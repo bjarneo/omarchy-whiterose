@@ -1,0 +1,48 @@
+# Desaturated Gruvbox colors on the Whiterose gray surfaces.
+# Backgrounds, foreground grays, bar chrome, and wallpaper stay inherited
+# from theme/whiterose; only color roles change.
+accent = "#d8bd7f"
+
+red = "#c9796f"
+yellow = "#d8bd7f"
+orange = "#d39a68"
+green = "#a9b77d"
+cyan = "#8db7a9"
+blue = "#8fa8bf"
+magenta = "#b895b6"
+brown = "#9b836b"
+
+bright_red = "#df8d82"
+bright_yellow = "#ecd08e"
+bright_green = "#bdca8e"
+bright_cyan = "#a2d0c0"
+bright_blue = "#a7bfd3"
+bright_magenta = "#cfaad0"
+
+hyprland_active_border = "rgba(d8bd7fee) rgba(8c7a62ee) 45deg"
+
+hover-cursor-color = "#d8bd7f"
+hover-cursor-border = "#d8bd7f"
+focus-color = "#d8bd7f"
+focus-border = "#d8bd7f"
+selected-color = "#d8bd7f"
+selected-border = "#d8bd7f"
+
+neovim_red = "#d78775"
+neovim_yellow = "#e0c87b"
+neovim_orange = "#d99d65"
+neovim_green = "#b8c58a"
+neovim_cyan = "#98c9b8"
+neovim_blue = "#9bb5cc"
+neovim_purple = "#c09abd"
+neovim_brown = "#a98c72"
+
+neovim_bright_red = "#e59a8e"
+neovim_bright_yellow = "#efd994"
+neovim_bright_green = "#c9d995"
+neovim_bright_cyan = "#a9d9c9"
+neovim_bright_blue = "#b1c9dc"
+neovim_bright_purple = "#d8b4d8"
+
+neovim_accent = "#d8bd7f"
+neovim_cursor = "#d8bd7f"

@@ -38,6 +38,11 @@ patches only accent-driven fields: `Color.accent`, Hyprland's active border,
 shell control focus/selection, and the Neovim accent/cursor. The gray accent
 is the main `whiterose` theme; other accents install as `whiterose-<accent>`.
 
+Richer variants live in `theme/variants/*.toml`. `whiterose-gruvbox` keeps
+the same gray backgrounds, foreground ramp, bar chrome, and wallpaper, then
+overrides only color roles with desaturated Gruvbox-inspired reds, yellows,
+greens, blues, and purples that pass AA contrast on the gray base.
+
 Accessibility: every text tone clears WCAG AA against `bg` (#1e1e1e):
 fg 10.7:1, dark_fg 6.9:1, muted 5.2:1, accent 13.6:1, white attention
 15.3:1. If you darken `muted` for looks, keep it at or above 4.5:1; it
@@ -61,7 +66,7 @@ Useful knobs:
 
 ```toml
 [bar]
-background-alpha = 0.82   # bar translucency
+background-alpha = 0.45   # Whiterose default bar translucency
 
 [spacing]
 scale = 1.1               # more breathing room everywhere

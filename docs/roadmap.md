@@ -20,9 +20,10 @@ is the plan, the decisions behind it, and what is left to build.
 4. Accessible. Contrast comes from the theme's fg/bg pair, state is never
    color-only (glyphs change shape, labels change text), everything is
    reachable by keyboard, destructive actions need a second Enter.
-5. One accent. The hacker note is restraint: prompt glyphs, hairlines,
-   uppercase micro-labels with letter spacing, a breathing colon. No neon,
-   no scanlines, no green-on-black cliche.
+5. One UI accent. The hacker note is restraint: prompt glyphs, hairlines,
+   uppercase micro-labels with letter spacing, a breathing colon. Richer
+   themes can tint terminal/editor roles, but interactive chrome stays
+   accent-led. No neon, no scanlines, no green-on-black cliche.
 
 ## Architecture
 
@@ -32,8 +33,10 @@ whiterose-omarchy/
 |  |- whiterose.menu/     kinds: menu + bar-widget (Menu.qml, BarWidget.qml, Data.js)
 |  |- whiterose.<widget>/ kinds: bar-widget (Widget.qml)
 |- theme/whiterose/       colors.toml + shell.<section>.toml + backgrounds/
+|- theme/accents/         one-line accent overrides for whiterose-<accent>
+|- theme/variants/        richer color-ramp overrides, such as whiterose-gruvbox
 |- extensions/            optional rows for the stock menu
-|- install.sh             symlink plugins, copy theme, rescan, enable
+|- install.sh             symlink plugins, compose themes, rescan, enable
 ```
 
 Key platform facts (from the shell source, `services/PluginRegistry.qml`):
@@ -74,6 +77,8 @@ SystemTray, Mpris, Networking).
   desaturated status colors, subtle two-stop border gradient.
 - `theme/accents/*.toml`: one-line accent overrides used to generate the
   `whiterose-<accent>` variants.
+- `theme/variants/*.toml`: fuller color-ramp overrides used for variants
+  like `whiterose-gruvbox` while preserving gray surfaces and wallpaper.
 - `shell.bar.toml`: bar at `background-alpha 0.45`, height 30.
 - `shell.controls.toml`: hairline 1 px borders, low-alpha fills, accent
   reserved for focus and hover.
@@ -106,11 +111,11 @@ theme, hint footer. Routes: `root`, `capture`, `style`, `toggle`,
 
 - Omni stays the launcher; it gets a "/" bar button and an Apps row in
   the menu, both toggling the existing overlay.
-- `install.sh` symlinks plugins (hot-reloadable), copies the theme
-  (theme staging requires real directories), enables everything, and
+- `install.sh` symlinks plugins (hot-reloadable), composes real theme
+  directories from the base theme plus overrides, enables everything, and
   optionally replaces the bar layout with a timestamped backup.
 - Keybindings: SUPER+ALT+SPACE and SUPER+ESCAPE now open the Whiterose
-  menu (documented, reversible unbind/bindd pair in bindings.conf).
+  menu (documented, reversible unbind/bind pair in `bindings.lua`).
 
 ### Phase 5: polish and a11y passes (in progress)
 
