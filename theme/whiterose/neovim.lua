@@ -38,8 +38,8 @@ return {
         bright_blue   = "#e4e4e4",
         bright_purple = "#bcbcbc",
 
-        accent               = "#ffffff",
-        cursor               = "#ffffff",
+        accent               = "#e8e8e8",
+        cursor               = "#e8e8e8",
         foreground           = "#e8e8e8",
         background           = "#121212",
         selection            = "#3a3a3a",

@@ -7,11 +7,11 @@ follows, including the menu, popouts, and bar chrome.
 
 ## The Whiterose theme
 
-`theme/whiterose/` ships:
+`theme/whiterose/` ships the main gray theme:
 
 | File | Purpose |
 | --- | --- |
-| colors.toml | Monochrome: graphite surfaces, near-white identity, AA contrast |
+| colors.toml | Monochrome: graphite surfaces, gray accent, AA contrast |
 | shell.bar.toml | Bar veil 0.45 alpha; attention is a pure white flash |
 | shell.controls.toml | Dim hairlines that switch to near-white on hover/focus |
 | neovim.lua | aether.nvim (bjarneo/aether.nvim, v3) fed the same palette |
@@ -25,12 +25,18 @@ the shell: a darker background (`#121212`) and a wider token ramp
 shell's gentler spread would read flat. Omarchy symlinks it into LazyVim
 via `~/.config/nvim/lua/plugins/theme.lua` on `omarchy theme set`.
 
-The theme is fully monochrome, adopted from an aether-generated
+The main theme is fully monochrome, adopted from an aether-generated
 grayscale theme and lifted for contrast (the source foreground measured
 4.7:1; this one is 10.7:1). There is no hue anywhere: the identity is
 light itself. Accent `#e8e8e8` marks focus and selection, the alarm is
 a pure white flash, and the ANSI ramp is grayscale by design, so
 terminals render in tone rather than color.
+
+Accent variants live in `theme/accents/*.toml` as one-line overrides. The
+installer copies `theme/whiterose/` into real Omarchy theme directories and
+patches only accent-driven fields: `Color.accent`, Hyprland's active border,
+shell control focus/selection, and the Neovim accent/cursor. The gray accent
+is the main `whiterose` theme; other accents install as `whiterose-<accent>`.
 
 Accessibility: every text tone clears WCAG AA against `bg` (#1e1e1e):
 fg 10.7:1, dark_fg 6.9:1, muted 5.2:1, accent 13.6:1, white attention

@@ -9,9 +9,9 @@ comes from the active theme, so it restyles itself when you switch themes.
 ```bash
 git clone <this repo> ~/Code/whiterose-omarchy
 cd ~/Code/whiterose-omarchy
-./install.sh          # plugins + theme
-./install.sh --bar    # also replace the bar layout (backs up shell.json)
-omarchy theme set whiterose
+./install.sh                # plugins + themes, choose a theme
+./install.sh --theme cyan   # apply whiterose-cyan without prompting
+./install.sh --bar          # also replace the bar layout (backs up shell.json)
 ```
 
 Open the menu:
@@ -41,10 +41,10 @@ here hot-reload with `omarchy plugin rescan`.
 | whiterose.update | omarchy.system-update | Appears only when an update exists |
 
 The stock `omarchy.tray` stays: tray icons are app-owned, there is nothing
-to restyle. The Whiterose theme ships translucent bar chrome, hairline
-controls, and a fully monochrome palette: graphite surfaces, near-white
-identity, a white flash for alarms, and a grayscale terminal ramp.
-Every text tone passes WCAG AA against the background.
+to restyle. The main Whiterose theme ships translucent bar chrome, hairline
+controls, and a fully monochrome palette: graphite surfaces, a gray accent,
+a white flash for alarms, and a grayscale terminal ramp. Accent variants
+keep that palette and override only the accent color.
 
 ## Keybindings
 

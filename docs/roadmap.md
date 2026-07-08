@@ -70,10 +70,11 @@ SystemTray, Mpris, Networking).
 
 ### Phase 1: chrome via theme (done)
 
-- `colors.toml`: near-black surfaces, off-white type, dusty-rose accent,
+- `colors.toml`: near-black surfaces, off-white type, gray main accent,
   desaturated status colors, subtle two-stop border gradient.
-- `shell.bar.toml`: bar at `background-alpha 0.82` (the "a bit transparent
-  navbar"), height 28.
+- `theme/accents/*.toml`: one-line accent overrides used to generate the
+  `whiterose-<accent>` variants.
+- `shell.bar.toml`: bar at `background-alpha 0.45`, height 30.
 - `shell.controls.toml`: hairline 1 px borders, low-alpha fills, accent
   reserved for focus and hover.
 - Margins and paddings ride the shell's semantic spacing tokens, so they
