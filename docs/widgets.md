@@ -74,9 +74,24 @@ The verbose mode reads interface state from the kernel (ip/iw), so it
 stays correct on iwd-managed Wi-Fi where the nmcli-based non-verbose
 mode (and the stock widget) report "disconnected". Tooltip shows SSID
 and signal quality, or interface and IP on ethernet. Left click opens a
-keyboard-driven NetworkManager popout: Up/Down selects a Wi-Fi network,
-Enter connects or disconnects, `r` rescans, and protected unknown networks
-expand an inline passphrase field. Right click toggles Wi-Fi power.
+keyboard-driven popout: Up/Down selects a Wi-Fi network, Enter connects or
+disconnects, `r` rescans, and protected networks expand an inline passphrase
+field. NetworkManager is used when available; iwd uses `iwctl` for actions
+and `iw` for scan data. Right click toggles Wi-Fi power on NetworkManager.
+
+Backend setting:
+
+```bash
+scripts/whiterose-network-backend status
+scripts/whiterose-network-backend fix-nm  # use NM, fall back to iwd/iw
+scripts/whiterose-network-backend iwd     # force iwd actions
+scripts/whiterose-network-backend iw      # force read-only iw scan fallback
+scripts/whiterose-network-backend auto    # prefer NM, then iwd, then iw
+```
+
+The helper checks existing `~/.bashrc` and `~/.zshrc` first. It updates the
+`whiterose.network` entry in `~/.config/omarchy/shell.json`; it only edits
+shell rc files when passed `--persist-env`.
 
 ## whiterose.bluetooth
 

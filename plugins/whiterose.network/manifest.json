@@ -10,8 +10,12 @@
   "entryPoints": { "barWidget": "Widget.qml" },
   "barWidget": {
     "displayName": "Whiterose network",
-    "description": "Wi-Fi and ethernet state with network picker",
+    "description": "Wi-Fi and ethernet state with NetworkManager/iwd picker",
     "category": "Network",
-    "allowMultiple": false
+    "allowMultiple": false,
+    "defaults": { "backend": "auto" },
+    "schema": [
+      { "key": "backend", "type": "string", "label": "Backend", "default": "auto", "description": "auto, nm, iwd, or iw" }
+    ]
   }
 }

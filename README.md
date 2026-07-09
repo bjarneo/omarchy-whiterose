@@ -21,6 +21,14 @@ Open the menu:
 omarchy-shell shell toggle whiterose.menu '{"menu":"root"}'
 ```
 
+If the network popout cannot use NetworkManager, switch or repair the backend:
+
+```bash
+scripts/whiterose-network-backend fix-nm
+scripts/whiterose-network-backend iwd
+scripts/whiterose-network-backend iw
+```
+
 The installer symlinks plugins into `~/.config/omarchy/plugins/`, so edits
 here hot-reload with `omarchy plugin rescan`.
 
