@@ -5,17 +5,13 @@
   "version": "1.0.0",
   "author": "bjarneo",
   "license": "MIT",
-  "description": "Connection state glyph with SSID tooltip. Click opens a network TUI.",
+  "description": "Connection state glyph with a keyboard-driven Wi-Fi popout.",
   "kinds": ["bar-widget"],
   "entryPoints": { "barWidget": "Widget.qml" },
   "barWidget": {
     "displayName": "Whiterose network",
-    "description": "Wi-Fi and ethernet state",
+    "description": "Wi-Fi and ethernet state with network picker",
     "category": "Network",
-    "allowMultiple": false,
-    "defaults": { "onClick": "omarchy-launch-floating-terminal-with-presentation nmtui" },
-    "schema": [
-      { "key": "onClick", "type": "string", "label": "Click command" }
-    ]
+    "allowMultiple": false
   }
 }

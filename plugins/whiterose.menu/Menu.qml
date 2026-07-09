@@ -24,11 +24,34 @@ Item {
   property int cursor: 0
   property int armed: -1
   property var rows: []
+  property var providerLoaded: ({})
+  property var providerQueue: []
+
+  readonly property var providers: ({
+    "themes": {
+      script: "current=$(omarchy-theme-current 2>/dev/null); omarchy-theme-list 2>/dev/null | while IFS= read -r t; do [[ -z $t ]] && continue; printf '%s\\t%s\\t%s\\n' \"$t\" \"$t\" \"$current\"; done",
+      icon: "\u{f0e0c}",
+      desc: "apply theme",
+      currentDesc: "current theme",
+      actionFor: function(value) { return "omarchy-theme-set " + root.shellQuote(value) },
+      keywordsFor: function(value) { return value + " theme colors palette" }
+    },
+    "power-profiles": {
+      script: "omarchy-powerprofiles-list --active-state 2>/dev/null | while IFS=$'\\t' read -r p active; do [[ -z $p ]] && continue; printf '%s\\t%s\\t%s\\n' \"$p\" \"$p\" \"$active\"; done",
+      icon: "\u{f0c0b}",
+      desc: "set profile",
+      currentDesc: "current profile",
+      actionFor: function(value) { return "powerprofilesctl set " + root.shellQuote(value) },
+      keywordsFor: function(value) { return value + " power battery performance balanced saver" }
+    }
+  })
 
   function rebuild() {
     rows = filterField.text.length > 0 ? Data.search(filterField.text) : Data.childrenOf(route)
     if (cursor >= rows.length) cursor = Math.max(0, rows.length - 1)
     armed = -1
+    if (filterField.text.length > 0) loadProvidersForSearch()
+    else loadProviderForRoute(route)
   }
 
   function open(payloadJson) {
@@ -38,6 +61,8 @@ Item {
     filterField.text = ""
     cursor = 0
     armed = -1
+    providerLoaded = ({})
+    providerQueue = []
     rebuild()
     opened = true
     Qt.callLater(function() { filterField.forceActiveFocus() })
@@ -59,6 +84,79 @@ Item {
     if (!command) return
     var bin = omarchyPath ? omarchyPath + "/bin/omarchy-hyprland-launch" : "omarchy-hyprland-launch"
     Quickshell.execDetached([bin, command])
+  }
+
+  function shellQuote(value) {
+    return "'" + String(value || "").replace(/'/g, "'\\''") + "'"
+  }
+
+  function markProviderLoaded(id) {
+    var next = ({})
+    for (var key in providerLoaded) next[key] = providerLoaded[key]
+    next[id] = true
+    providerLoaded = next
+  }
+
+  function startProviderForRoute(id) {
+    var providerKey = Data.providerFor(id)
+    var spec = providers[providerKey]
+    if (!spec) return
+    markProviderLoaded(id)
+    providerProc.parentId = id
+    providerProc.providerKey = providerKey
+    providerProc.command = ["bash", "-lc", spec.script]
+    providerProc.running = true
+  }
+
+  function startNextProvider() {
+    if (providerProc.running) return
+    while (providerQueue.length > 0) {
+      var id = providerQueue[0]
+      providerQueue = providerQueue.slice(1)
+      if (providerLoaded[id]) continue
+      startProviderForRoute(id)
+      return
+    }
+  }
+
+  function loadProviderForRoute(id) {
+    if (!id || providerLoaded[id] || !Data.providerFor(id)) return
+    if (providerProc.running) {
+      if (providerQueue.indexOf(id) === -1) providerQueue = providerQueue.concat([id])
+      return
+    }
+    startProviderForRoute(id)
+  }
+
+  function loadProvidersForSearch() {
+    var routes = Data.providerRoutes()
+    for (var i = 0; i < routes.length; i++) loadProviderForRoute(routes[i])
+  }
+
+  function mergeProviderRows(parentId, providerKey, raw) {
+    var spec = providers[providerKey]
+    if (!spec) return
+    var rows = []
+    var lines = String(raw || "").split("\n")
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i]
+      if (!line) continue
+      var parts = line.split("\t")
+      var label = parts[0] || ""
+      var value = parts[1] || label
+      var current = parts[2] || ""
+      if (!label || !value) continue
+      var isCurrent = current === "1" || value === current || label === current
+      rows.push({
+        icon: isCurrent ? "✓" : spec.icon,
+        label: label,
+        desc: isCurrent ? spec.currentDesc : spec.desc,
+        keywords: spec.keywordsFor(value),
+        action: spec.actionFor(value)
+      })
+    }
+    Data.setDynamicRows(parentId, rows)
+    if (opened) rebuild()
   }
 
   function descend(row) {
@@ -108,6 +206,21 @@ Item {
     id: disarmTimer
     interval: 3000
     onTriggered: root.armed = -1
+  }
+
+  Process {
+    id: providerProc
+    property string parentId: ""
+    property string providerKey: ""
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.mergeProviderRows(providerProc.parentId, providerProc.providerKey, text)
+    }
+    onExited: {
+      parentId = ""
+      providerKey = ""
+      root.startNextProvider()
+    }
   }
 
   IpcHandler {

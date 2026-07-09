@@ -33,16 +33,19 @@ here hot-reload with `omarchy plugin rescan`.
 | whiterose.clock | omarchy.clock | HH:mm with a breathing separator, click for date |
 | whiterose.active-window | omarchy.active-window | Dimmed window title (built, not in the default layout) |
 | whiterose.audio | omarchy.audio | Glyph + hairline slider popout, wheel volume |
-| whiterose.network | omarchy.network | Wi-Fi / ethernet state, SSID tooltip |
+| whiterose.network | omarchy.network | Wi-Fi / ethernet state, keyboard network picker |
 | whiterose.bluetooth | omarchy.bluetooth | Device picker popout; right click toggles power |
 | whiterose.battery | omarchy.power | Charge glyph, urgent when low, hidden on desktops |
 | whiterose.media | omarchy.media | MPRIS now playing, click play/pause, hidden when idle |
 | whiterose.omni | (new) | "/" button that opens your Omni palette |
 | whiterose.power | (new) | Power button into the system menu |
 | whiterose.update | omarchy.system-update | Appears only when an update exists |
+| whiterose.notifications | omarchy.notifications | Pending/recent notifications, DND toggle |
 
 The stock `omarchy.tray` stays: tray icons are app-owned, there is nothing
-to restyle. The main Whiterose theme ships translucent bar chrome, hairline
+to restyle. The stock `omarchy.osd` stays enabled so volume, display
+brightness, and keyboard backlight keys still show progress overlays. The
+main Whiterose theme ships translucent bar chrome, hairline
 controls, and a fully monochrome palette: graphite surfaces, a gray accent,
 a white flash for alarms, and a grayscale terminal ramp. Accent variants
 keep that palette and override only the accent color. `whiterose-gruvbox`

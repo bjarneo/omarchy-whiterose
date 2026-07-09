@@ -44,6 +44,7 @@ plugins=(
   whiterose.omni
   whiterose.power
   whiterose.update
+  whiterose.notifications
 )
 optional_plugins=(
   whiterose.active-window
@@ -443,7 +444,8 @@ for id in "${plugins[@]}"; do
   omarchy-shell shell setPluginEnabled "$id" true >/dev/null
 done
 
-# Menu/overlay plugins are enabled by presence in shell.json plugins[].
+# Menu/overlay plugins are enabled by presence in shell.json plugins[]. Keep
+# the stock OSD enabled so media and brightness keys can show progress.
 python3 - "$HOME/.config/omarchy/shell.json" <<'PY'
 import json, sys, os
 path = sys.argv[1]
@@ -452,8 +454,9 @@ if os.path.exists(path):
     with open(path) as f:
         config = json.load(f)
 plugins = config.setdefault("plugins", [])
-if not any(p.get("id") == "whiterose.menu" for p in plugins):
-    plugins.append({"id": "whiterose.menu"})
+for plugin_id in ("whiterose.menu", "omarchy.osd"):
+    if not any(p.get("id") == plugin_id for p in plugins):
+        plugins.append({"id": plugin_id})
 with open(path, "w") as f:
     json.dump(config, f, indent=2)
     f.write("\n")
@@ -486,6 +489,7 @@ bar["layout"] = {
     "right": [
         {"id": "whiterose.media"},
         {"id": "whiterose.update"},
+        {"id": "whiterose.notifications"},
         {"id": "omarchy.tray"},
         {"id": "whiterose.bluetooth"},
         {"id": "whiterose.network"},

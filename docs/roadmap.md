@@ -87,7 +87,7 @@ SystemTray, Mpris, Networking).
 
 ### Phase 2: bar widgets (done)
 
-Eleven plugins, listed in the README. Notable behaviors:
+Plugins listed in the README. Notable behaviors:
 
 - workspaces: dashes instead of numbers; focused dash widens and takes
   the accent (160 ms), occupied dashes sit at 65 percent, empty at 22.
@@ -104,20 +104,23 @@ Eleven plugins, listed in the README. Notable behaviors:
 so adding a menu item is one line. Features: type-to-filter across the
 whole tree, breadcrumb, Backspace/Left to go up, Enter-twice confirm on
 logout/restart/shutdown, 140 ms fade-and-lift entrance, scrim from the
-theme, hint footer. Routes: `root`, `capture`, `style`, `toggle`,
+theme, hint footer, dynamic provider rows for themes and power profiles.
+Routes: `root`, `capture`, `style`, `toggle`,
 `system` (alias `power`).
 
 ### Phase 4: integration (done)
 
 - Omni stays the launcher; it gets a "/" bar button and an Apps row in
   the menu, both toggling the existing overlay.
+- The stock `omarchy.osd` stays enabled because media and brightness scripts
+  target it for volume, display brightness, and keyboard backlight feedback.
 - `install.sh` symlinks plugins (hot-reloadable), composes real theme
   directories from the base theme plus overrides, enables everything, and
   optionally replaces the bar layout with a timestamped backup.
 - Keybindings: SUPER+ALT+SPACE and SUPER+ESCAPE now open the Whiterose
   menu (documented, reversible unbind/bind pair in `bindings.lua`).
 
-### Phase 5: polish and a11y passes (in progress)
+### Phase 5: polish and a11y passes (done)
 
 - [x] Menu: fuzzy matching (scored subsequence, label matches first).
 - [x] Media widget (Mpris): play state + truncated title, hidden when
@@ -127,12 +130,12 @@ theme, hint footer. Routes: `root`, `capture`, `style`, `toggle`,
 - [x] Reduced motion: `pulse false` setting on the clock.
 - [x] Brand: theme-adaptive rose logo as the menu button (light/dark
       variant chosen by bar foreground luminance).
-- [ ] Focus-visible audit: verify `focus-*` tokens read clearly in both
-      the Whiterose theme and stock themes.
-- [ ] Menu: dynamic providers (themes list, power profiles) via Process.
-- [ ] Network popout: list networks with connect/disconnect using
+- [x] Focus-visible audit: verified Whiterose plus stock Omarchy themes;
+      foreground clears 4.5:1 and accent clears 3.0:1 against theme bg.
+- [x] Menu: dynamic providers (themes list, power profiles) via Process.
+- [x] Network popout: list networks with connect/disconnect using
       `Quickshell.Networking`, replacing the nmtui jump.
-- [ ] Notification center widget backed by the shell notification service.
+- [x] Notification center widget backed by the shell notification service.
 
 ### Phase 6: optional full bar (`kind: "bar"`)
 

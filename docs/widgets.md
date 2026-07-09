@@ -23,8 +23,10 @@ Keys inside the menu: type to filter, Up/Down/Tab to move, Enter to run
 or descend, Right to descend, Backspace/Left to go up, Esc to clear the
 filter then close. Logout, restart, and shutdown ask for a second Enter.
 
-Add or change items in `plugins/whiterose.menu/Data.js`. Entries use
-dotted ids (`system.lock`); an entry without an `action` is a submenu.
+Add or change static items in `plugins/whiterose.menu/Data.js`. Entries use
+dotted ids (`system.lock`); an entry without an `action` is a submenu. The
+`style.themes` and `system.power-profile` submenus are filled dynamically from
+`omarchy-theme-list` and `omarchy-powerprofiles-list` when opened or searched.
 
 ## whiterose.workspaces
 
@@ -67,15 +69,14 @@ closes). Uses the default Pipewire sink.
 
 ## whiterose.network
 
-| Setting | Default |
-| --- | --- |
-| onClick | omarchy-launch-floating-terminal-with-presentation nmtui |
-
 State comes from `omarchy-network-status --verbose` every 3 seconds.
 The verbose mode reads interface state from the kernel (ip/iw), so it
 stays correct on iwd-managed Wi-Fi where the nmcli-based non-verbose
 mode (and the stock widget) report "disconnected". Tooltip shows SSID
-and signal quality, or interface and IP on ethernet.
+and signal quality, or interface and IP on ethernet. Left click opens a
+keyboard-driven NetworkManager popout: Up/Down selects a Wi-Fi network,
+Enter connects or disconnects, `r` rescans, and protected unknown networks
+expand an inline passphrase field. Right click toggles Wi-Fi power.
 
 ## whiterose.bluetooth
 
@@ -117,3 +118,11 @@ Power glyph that opens the system section of the Whiterose menu.
 Invisible until `omarchy-update-available` reports an update (checked
 hourly), then a single urgent glyph. Click runs the update in a floating
 terminal.
+
+## whiterose.notifications
+
+Notification center backed by the stock `omarchy.notifications` service, so
+DBus ownership, popup toasts, DND persistence, image caching, and history stay
+with the shell service. Left click opens pending/recent notifications, right
+click toggles DND. In the popout, Left/Right switches tabs and Enter dismisses
+the selected row.

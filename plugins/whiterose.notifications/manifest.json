@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.notifications",
+  "name": "Whiterose Notifications",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Minimal notification center backed by the Omarchy notification service.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose notifications",
+    "description": "Pending and recent notifications with DND",
+    "category": "Status",
+    "allowMultiple": false
+  }
+}
