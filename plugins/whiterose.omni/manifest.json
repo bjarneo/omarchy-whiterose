@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "whiterose.omni",
-  "name": "Whiterose Omni Button",
+  "name": "Whiterose Launcher Button",
   "version": "1.0.0",
   "author": "bjarneo",
   "license": "MIT",
-  "description": "Slash button that toggles the Omni command palette overlay.",
+  "description": "Slash button that toggles the Omarchy launcher overlay.",
   "kinds": ["bar-widget"],
   "entryPoints": { "barWidget": "Widget.qml" },
   "barWidget": {
-    "displayName": "Whiterose omni",
-    "description": "Opens the Omni palette",
+    "displayName": "Whiterose launcher",
+    "description": "Opens the Omarchy launcher",
     "category": "Compositor",
     "allowMultiple": false
   }

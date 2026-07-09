@@ -1,6 +1,6 @@
 {
   // Optional: rows for the stock omarchy menu, in case you keep it bound
   // somewhere. Copy into ~/.config/omarchy/extensions/omarchy-menu.jsonc.
-  "omni": {"icon": "❯", "label": "Omni", "keywords": "palette search launcher", "action": "omarchy-shell shell toggle omni '{}'"},
+  "launcher": {"icon": "❯", "label": "Launcher", "keywords": "palette search launcher omni", "action": "omarchy-shell shell toggle omarchy.launcher '{}'"},
   "whiterose": {"icon": "❯", "label": "Whiterose menu", "keywords": "menu whiterose", "action": "omarchy-shell shell toggle whiterose.menu '{\"menu\":\"root\"}'"}
 }

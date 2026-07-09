@@ -110,7 +110,7 @@ Routes: `root`, `capture`, `style`, `toggle`,
 
 ### Phase 4: integration (done)
 
-- Omni stays the launcher; it gets a "/" bar button and an Apps row in
+- The Omarchy launcher stays the launcher; it gets a "/" bar button and an Apps row in
   the menu, both toggling the existing overlay.
 - The stock `omarchy.osd` stays enabled because media and brightness scripts
   target it for volume, display brightness, and keyboard backlight feedback.

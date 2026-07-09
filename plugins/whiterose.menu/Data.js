@@ -7,7 +7,7 @@
 // omarchy menu so they render on every install.
 
 var TREE = [
-  { id: "apps", icon: "❯", label: "Apps", desc: "omni command palette", keywords: "launcher search omni run", action: "omarchy-shell shell toggle omni '{}'" },
+  { id: "apps", icon: "❯", label: "Apps", desc: "app launcher", keywords: "launcher search omni run", action: "omarchy-shell shell toggle omarchy.launcher '{}'" },
 
   { id: "capture", icon: "", label: "Capture", desc: "", keywords: "screenshot record ocr color" },
   { id: "capture.screenshot", icon: "", label: "Screenshot", desc: "", keywords: "picture region", action: "omarchy-capture-screenshot" },
@@ -18,7 +18,7 @@ var TREE = [
   { id: "capture.color", icon: "\u{f00c9}", label: "Pick color", desc: "", keywords: "picker hyprpicker", action: "pkill hyprpicker || hyprpicker -a" },
 
   { id: "style", icon: "", label: "Style", desc: "", keywords: "theme background colors" },
-  { id: "style.theme", icon: "\u{f0e0c}", label: "Next theme", desc: "cycle installed themes", keywords: "colors switch", action: "omarchy-theme-next" },
+  { id: "style.theme", icon: "\u{f0e0c}", label: "Theme switcher", desc: "preview and apply", keywords: "colors switch", action: "theme=$(omarchy-theme-switcher); [[ -n $theme ]] && omarchy-theme-set \"$theme\"" },
   { id: "style.themes", icon: "\u{f0e0c}", label: "Themes", desc: "choose installed theme", keywords: "colors switch palette", provider: "themes" },
   { id: "style.background", icon: "", label: "Next background", desc: "", keywords: "wallpaper", action: "omarchy-theme-bg-next" },
 

@@ -37,7 +37,7 @@ here hot-reload with `omarchy plugin rescan`.
 | whiterose.bluetooth | omarchy.bluetooth | Device picker popout; right click toggles power |
 | whiterose.battery | omarchy.power | Charge glyph, urgent when low, hidden on desktops |
 | whiterose.media | omarchy.media | MPRIS now playing, click play/pause, hidden when idle |
-| whiterose.omni | (new) | "/" button that opens your Omni palette |
+| whiterose.omni | (new) | "/" button that opens the Omarchy launcher |
 | whiterose.power | (new) | Power button into the system menu |
 | whiterose.update | omarchy.system-update | Appears only when an update exists |
 | whiterose.notifications | omarchy.notifications | Pending/recent notifications, DND toggle |

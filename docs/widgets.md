@@ -107,7 +107,7 @@ menu.
 
 ## whiterose.omni
 
-"/" button that toggles the Omni palette overlay (`omni` plugin).
+"/" button that toggles the stock Omarchy launcher (`omarchy.launcher`).
 
 ## whiterose.power
 
