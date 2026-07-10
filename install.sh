@@ -70,6 +70,25 @@ die() {
   exit 1
 }
 
+# IPC to the running shell is best-effort: everything this installer does on
+# disk stays valid when the shell is down or unreachable (for example right
+# after an omarchy migration moved OMARCHY_PATH); the shell then picks the
+# changes up on its next start instead of a live reload.
+shell_ipc_ok=true
+
+shell_ipc() {
+  [[ "$shell_ipc_ok" == true ]] || return 0
+  if ! omarchy-shell "$@" >/dev/null 2>&1; then
+    if ! omarchy-shell shell ping >/dev/null 2>&1; then
+      shell_ipc_ok=false
+      echo "warning: the omarchy shell is not reachable over IPC; skipping live reload." >&2
+      echo "         Files are installed; run omarchy-restart-shell (or relogin) to activate." >&2
+    else
+      echo "warning: omarchy-shell $* failed" >&2
+    fi
+  fi
+}
+
 # "gray" and "light" are the two base themes; every other option composes on
 # top of one of them. A trailing "-light" selects the light base.
 option_is_light() {
@@ -546,10 +565,10 @@ done
 # Themes must be real directories (omarchy-theme-set stages a copy).
 install_themes
 
-omarchy-shell shell rescanPlugins >/dev/null
+shell_ipc shell rescanPlugins
 
 for id in "${plugins[@]}"; do
-  omarchy-shell shell setPluginEnabled "$id" true >/dev/null
+  shell_ipc shell setPluginEnabled "$id" true
 done
 
 # Menu/overlay plugins are enabled by presence in shell.json plugins[]. Keep
@@ -569,7 +588,7 @@ with open(path, "w") as f:
     json.dump(config, f, indent=2)
     f.write("\n")
 PY
-omarchy-shell shell reloadConfig >/dev/null
+shell_ipc shell reloadConfig
 echo "plugins enabled"
 
 if [[ "$replace_bar" == true ]]; then
@@ -616,7 +635,7 @@ with open(path, "w") as f:
     json.dump(config, f, indent=2)
     f.write("\n")
 PY
-  omarchy-shell shell reloadConfig >/dev/null
+  shell_ipc shell reloadConfig
   echo "bar layout replaced (previous shell.json backed up)"
 fi
 
