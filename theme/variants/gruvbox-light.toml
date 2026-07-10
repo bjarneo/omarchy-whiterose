@@ -1,0 +1,50 @@
+# Desaturated Gruvbox-light colors on the Whiterose paper surfaces.
+# Backgrounds, foreground grays, bar chrome, and wallpaper stay inherited
+# from theme/whiterose-light; only color roles change. Every value clears
+# WCAG AA (4.5:1) against the paper bg (#f4f2ee) and the editor bg
+# (#ededed) for the neovim_* keys.
+accent = "#85620a"
+
+red = "#a03a34"
+yellow = "#85620a"
+orange = "#93500f"
+green = "#5e6813"
+cyan = "#38695a"
+blue = "#2f5f77"
+magenta = "#7d4368"
+brown = "#6d5d4b"
+
+bright_red = "#af4a43"
+bright_yellow = "#8a670b"
+bright_green = "#68731a"
+bright_cyan = "#3e7663"
+bright_blue = "#376e8a"
+bright_magenta = "#8b4d75"
+
+hyprland_active_border = "rgba(85620aee) rgba(b39449ee) 45deg"
+
+hover-cursor-color = "#85620a"
+hover-cursor-border = "#85620a"
+focus-color = "#85620a"
+focus-border = "#85620a"
+selected-color = "#85620a"
+selected-border = "#85620a"
+
+neovim_red = "#9a3832"
+neovim_yellow = "#805e09"
+neovim_orange = "#8d4d0e"
+neovim_green = "#5a6412"
+neovim_cyan = "#356456"
+neovim_blue = "#2d5b72"
+neovim_purple = "#784064"
+neovim_brown = "#695a48"
+
+neovim_bright_red = "#a84841"
+neovim_bright_yellow = "#846409"
+neovim_bright_green = "#616c17"
+neovim_bright_cyan = "#3a7060"
+neovim_bright_blue = "#346886"
+neovim_bright_purple = "#834870"
+
+neovim_accent = "#805e09"
+neovim_cursor = "#805e09"

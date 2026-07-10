@@ -25,6 +25,7 @@ var TREE = [
   { id: "toggle", icon: "\u{f050e}", label: "Toggle", desc: "", keywords: "switch" },
   { id: "toggle.nightlight", icon: "\u{f050e}", label: "Nightlight", desc: "", keywords: "hyprsunset warm", action: "omarchy-toggle-nightlight" },
   { id: "toggle.idle", icon: "\u{f1ad6}", label: "Idle lock", desc: "", keywords: "screensaver caffeine stay awake", action: "omarchy-toggle-idle" },
+  { id: "toggle.lightmode", icon: "\u{f05a8}", label: "Light mode", desc: "swap light/dark theme twin", keywords: "dark light mode theme paper invert", action: "t=$(cat \"$HOME/.local/state/omarchy/current/theme.name\" 2>/dev/null); [ -n \"$t\" ] || exit 0; case $t in catppuccin) n=catppuccin-latte ;; catppuccin-latte) n=catppuccin ;; *-light) n=${t%-light} ;; *) n=$t-light ;; esac; if [ -d \"$HOME/.config/omarchy/themes/$n\" ] || [ -d \"${OMARCHY_PATH:-$HOME/.local/share/omarchy}/themes/$n\" ]; then omarchy-theme-set \"$n\"; else notify-send \"Whiterose\" \"No $n theme installed\"; fi" },
   { id: "toggle.bar", icon: "\u{f035c}", label: "Bar", desc: "show or hide the bar", keywords: "hide show", action: "omarchy-toggle-bar" },
 
   { id: "system", icon: "", label: "System", desc: "", keywords: "power lock logout restart shutdown" },

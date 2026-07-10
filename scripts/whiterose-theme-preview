@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Render preview.png for a Whiterose theme directory.
+
+Reads colors.toml (flat key = "#rrggbb" pairs) and draws a small
+deterministic swatch card: bar strip, text lines, accent bar, ANSI ramp.
+The theme switcher shows preview.png when present. Pure stdlib so the
+installer never needs an image tool.
+
+Usage: whiterose-theme-preview <theme-dir>
+"""
+
+import re
+import struct
+import sys
+import zlib
+from pathlib import Path
+
+W, H = 640, 360
+
+
+def parse_colors(path):
+    colors = {}
+    for line in path.read_text().splitlines():
+        match = re.match(r'^\s*([A-Za-z0-9_]+)\s*=\s*"(#[0-9a-fA-F]{6})"\s*$', line)
+        if match:
+            colors[match.group(1)] = match.group(2)
+    return colors
+
+
+def rgb(value):
+    value = value.lstrip("#")
+    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def fill(pix, x, y, w, h, color):
+    for row in range(max(0, y), min(H, y + h)):
+        base = row * W
+        for col in range(max(0, x), min(W, x + w)):
+            pix[base + col] = color
+
+
+def write_png(path, pix):
+    raw = bytearray()
+    for row in range(H):
+        raw.append(0)  # filter type: none
+        for col in range(W):
+            raw.extend(pix[row * W + col])
+
+    def chunk(tag, data):
+        block = tag + data
+        return struct.pack(">I", len(data)) + block + struct.pack(">I", zlib.crc32(block))
+
+    header = struct.pack(">IIBBBBB", W, H, 8, 2, 0, 0, 0)
+    png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header)
+    png += chunk(b"IDAT", zlib.compress(bytes(raw), 9))
+    png += chunk(b"IEND", b"")
+    path.write_bytes(png)
+
+
+def main():
+    if len(sys.argv) != 2:
+        raise SystemExit(__doc__.strip().splitlines()[-1])
+    theme = Path(sys.argv[1])
+    colors_file = theme / "colors.toml"
+    if not colors_file.is_file():
+        raise SystemExit(f"missing colors.toml in {theme}")
+    colors = parse_colors(colors_file)
+
+    def c(key, fallback):
+        return rgb(colors.get(key, fallback))
+
+    pix = [c("bg", "#1e1e1e")] * (W * H)
+    # Bar strip with an accent "logo" dot and a muted clock stub.
+    fill(pix, 0, 0, W, 26, c("dark_bg", "#161616"))
+    fill(pix, 24, 8, 10, 10, c("accent", "#e8e8e8"))
+    fill(pix, W - 90, 10, 66, 6, c("muted", "#909090"))
+    # Three text lines in the foreground ramp.
+    fill(pix, 40, 70, 320, 10, c("fg", "#cfcfcf"))
+    fill(pix, 40, 98, 250, 10, c("dark_fg", "#a6a6a6"))
+    fill(pix, 40, 126, 180, 10, c("muted", "#909090"))
+    # Accent bar (selection/focus).
+    fill(pix, 40, 170, 220, 14, c("accent", "#e8e8e8"))
+    # ANSI ramp.
+    for i, key in enumerate(("red", "yellow", "orange", "green", "cyan", "blue", "magenta", "brown")):
+        fill(pix, 40 + i * 44, 280, 30, 30, c(key, "#909090"))
+
+    write_png(theme / "preview.png", pix)
+
+
+if __name__ == "__main__":
+    main()

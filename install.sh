@@ -6,9 +6,14 @@
 #   ./install.sh                    # install plugins + themes, choose a theme
 #   ./install.sh --theme cyan       # install and apply whiterose-cyan
 #   ./install.sh --theme gruvbox    # install and apply whiterose-gruvbox
+#   ./install.sh --theme light      # install and apply the light paper theme
 #   ./install.sh --theme whiterose  # install and apply the main gray theme
 #   ./install.sh --bar              # also replace the bar layout (backs up shell.json)
+#   ./install.sh --force            # overwrite locally modified theme dirs
 #   ./install.sh --uninstall        # remove symlinks and restore nothing else
+#
+# Every theme installs in a dark and a light variant so the whiterose.mode
+# widget (and the menu's Light mode row) can flip between them.
 
 set -euo pipefail
 
@@ -16,17 +21,26 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 plugdir="$HOME/.config/omarchy/plugins"
 themedir="$HOME/.config/omarchy/themes"
 base_theme="whiterose"
+manifest_name=".whiterose-manifest"
 selected_theme=""
 replace_bar=false
+force=false
 
 theme_options=(
   gray
+  light
   rose
+  rose-light
   amber
+  amber-light
   green
+  green-light
   cyan
+  cyan-light
   violet
+  violet-light
   gruvbox
+  gruvbox-light
 )
 
 # Enabling a bar-widget plugin also adds it to the bar layout (the shell
@@ -41,6 +55,7 @@ plugins=(
   whiterose.bluetooth
   whiterose.battery
   whiterose.media
+  whiterose.mode
   whiterose.omni
   whiterose.power
   whiterose.update
@@ -55,6 +70,24 @@ die() {
   exit 1
 }
 
+# "gray" and "light" are the two base themes; every other option composes on
+# top of one of them. A trailing "-light" selects the light base.
+option_is_light() {
+  [[ "$1" == "light" || "$1" == *-light ]]
+}
+
+is_base_option() {
+  [[ "$1" == "gray" || "$1" == "light" ]]
+}
+
+base_dir_for_option() {
+  if option_is_light "$1"; then
+    printf '%s\n' "$repo/theme/$base_theme-light"
+  else
+    printf '%s\n' "$repo/theme/$base_theme"
+  fi
+}
+
 theme_name_for_option() {
   local option="$1"
   if [[ "$option" == "gray" ]]; then
@@ -66,11 +99,14 @@ theme_name_for_option() {
 
 theme_file_for_option() {
   local option="$1"
+  local stem="${option%-light}"
 
-  if [[ -f "$repo/theme/accents/$option.toml" ]]; then
-    printf '%s\n' "$repo/theme/accents/$option.toml"
+  if is_base_option "$option"; then
+    printf '%s\n' "$(base_dir_for_option "$option")/colors.toml"
   elif [[ -f "$repo/theme/variants/$option.toml" ]]; then
     printf '%s\n' "$repo/theme/variants/$option.toml"
+  elif [[ -f "$repo/theme/accents/$stem.toml" ]]; then
+    printf '%s\n' "$repo/theme/accents/$stem.toml"
   else
     die "missing theme override file for $option"
   fi
@@ -80,13 +116,33 @@ is_full_theme_option() {
   [[ -f "$repo/theme/variants/$1.toml" ]]
 }
 
+# Accent files carry both modes: `accent` for the dark base, `light_accent`
+# for the light one. Full variants and bases read their own `accent` key.
+accent_key_for_option() {
+  local option="$1"
+  if ! is_base_option "$option" && ! is_full_theme_option "$option" && option_is_light "$option"; then
+    printf '%s\n' "light_accent"
+  else
+    printf '%s\n' "accent"
+  fi
+}
+
 theme_label_for_option() {
   local option="$1"
+  local stem="${option%-light}"
 
   if [[ "$option" == "gray" ]]; then
     printf '%s\n' "gray, main"
+  elif [[ "$option" == "light" ]]; then
+    printf '%s\n' "paper, light"
   elif is_full_theme_option "$option"; then
-    printf '%s\n' "$option colors"
+    if option_is_light "$option"; then
+      printf '%s\n' "$stem colors, light"
+    else
+      printf '%s\n' "$option colors"
+    fi
+  elif option_is_light "$option"; then
+    printf '%s\n' "$stem accent, light"
   else
     printf '%s\n' "$option accent"
   fi
@@ -94,26 +150,30 @@ theme_label_for_option() {
 
 read_theme_accent_color() {
   local option="$1"
-  local file
+  local file key
   local line color
 
   file="$(theme_file_for_option "$option")"
+  key="$(accent_key_for_option "$option")"
   [[ -f "$file" ]] || die "missing theme file: $file"
   while IFS= read -r line; do
-    if [[ $line =~ ^[[:space:]]*accent[[:space:]]*=[[:space:]]*\"(#[0-9A-Fa-f]{6})\"[[:space:]]*$ ]]; then
+    if [[ $line =~ ^[[:space:]]*${key}[[:space:]]*=[[:space:]]*\"(#[0-9A-Fa-f]{6})\"[[:space:]]*$ ]]; then
       color="${BASH_REMATCH[1]}"
       printf '%s\n' "${color,,}"
       return 0
     fi
   done <"$file"
 
-  die "missing accent color in $file"
+  die "missing $key color in $file"
 }
 
 usage() {
   cat <<EOF
-Usage: ./install.sh [--theme THEME] [--bar]
+Usage: ./install.sh [--theme THEME] [--bar] [--force]
        ./install.sh --uninstall
+
+--force overwrites installed theme directories even when they were made by
+hand or locally modified (including installs from before checksum manifests).
 
 Themes:
 EOF
@@ -362,23 +422,59 @@ for key, value in overrides.items():
 PY
 }
 
+# Installed theme dirs get a checksum manifest so a later run can tell its
+# own output from local edits. No manifest (hand-made dir or pre-manifest
+# install) or a checksum mismatch means we refuse to overwrite unless
+# --force is passed.
+theme_checksums() {
+  (cd "$1" && find . -type f ! -name "$manifest_name" -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum)
+}
+
+write_theme_manifest() {
+  theme_checksums "$1" >"$1/$manifest_name"
+}
+
+overwrite_allowed() {
+  local target="$1"
+  [[ -d "$target" ]] || return 0
+  [[ "$force" == true ]] && return 0
+  [[ -f "$target/$manifest_name" ]] || return 1
+  diff -q <(theme_checksums "$target") "$target/$manifest_name" >/dev/null 2>&1
+}
+
+generate_theme_preview() {
+  local target="$1"
+  python3 "$repo/scripts/whiterose-theme-preview" "$target" ||
+    echo "warning: preview generation failed for $target" >&2
+}
+
 install_theme() {
   local option="$1"
-  local theme_name accent_color target
+  local theme_name accent_color target base_dir
 
   theme_name="$(theme_name_for_option "$option")"
   accent_color="$(read_theme_accent_color "$option")"
+  base_dir="$(base_dir_for_option "$option")"
   target="$themedir/$theme_name"
 
+  if ! overwrite_allowed "$target"; then
+    echo "skipped theme $theme_name: not generated by this installer or locally modified (rerun with --force to overwrite)" >&2
+    return 0
+  fi
+
   rm -rf "${target:?}"
-  cp -r "$repo/theme/$base_theme" "$target"
-  if is_full_theme_option "$option"; then
+  cp -r "$base_dir" "$target"
+  if is_base_option "$option"; then
+    echo "copied theme $theme_name (base, accent $accent_color)"
+  elif is_full_theme_option "$option"; then
     apply_color_variant_to_theme "$target" "$(theme_file_for_option "$option")"
     echo "copied theme $theme_name ($option colors $accent_color)"
   else
     apply_accent_to_theme "$target" "$accent_color"
     echo "copied theme $theme_name ($option accent $accent_color)"
   fi
+  generate_theme_preview "$target"
+  write_theme_manifest "$target"
 }
 
 install_themes() {
@@ -389,10 +485,19 @@ install_themes() {
 }
 
 uninstall() {
-  local option theme_name
+  local option theme_name current
   for id in "${plugins[@]}" "${optional_plugins[@]}"; do
     [[ -L "$plugdir/$id" ]] && rm "$plugdir/$id" && echo "removed $id"
   done
+  # Do not delete the theme the shell is currently running on.
+  current=""
+  [[ -f "$HOME/.local/state/omarchy/current/theme.name" ]] &&
+    current="$(<"$HOME/.local/state/omarchy/current/theme.name")"
+  if [[ "$current" == "$base_theme" || "$current" == "$base_theme"-* ]]; then
+    echo "switching away from $current before removing themes"
+    omarchy-theme-set tokyo-night ||
+      echo "warning: theme switch failed; run: omarchy theme set 'Tokyo Night'" >&2
+  fi
   for option in "${theme_options[@]}"; do
     theme_name="$(theme_name_for_option "$option")"
     [[ -d "$themedir/$theme_name" ]] && rm -rf "${themedir:?}/$theme_name" && echo "removed theme $theme_name"
@@ -406,6 +511,9 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --bar)
       replace_bar=true
+      ;;
+    --force)
+      force=true
       ;;
     --theme)
       [[ $# -ge 2 ]] || die "--theme needs a value"
@@ -468,6 +576,8 @@ if [[ "$replace_bar" == true ]]; then
   shelljson="$HOME/.config/omarchy/shell.json"
   if [[ -f "$shelljson" ]]; then
     cp "$shelljson" "$shelljson.bak.$(date +%s)"
+    # Keep the five newest backups; these accumulate one per --bar run.
+    ls -1t "$shelljson".bak.* 2>/dev/null | tail -n +6 | xargs -r rm --
     echo "backed up shell.json"
   fi
   python3 - "$shelljson" <<'PY'
@@ -495,6 +605,7 @@ bar["layout"] = {
         {"id": "whiterose.network"},
         {"id": "whiterose.audio"},
         {"id": "whiterose.battery"},
+        {"id": "whiterose.mode"},
         {"id": "whiterose.omni"},
         {"id": "whiterose.power"},
     ],
@@ -517,6 +628,10 @@ cat <<'EOF'
 Done. Useful commands:
   ./install.sh --theme gruvbox                install and apply whiterose-gruvbox
   ./install.sh --theme cyan                   install and apply whiterose-cyan
+  ./install.sh --theme light                  install and apply the light paper theme
   ./install.sh --theme whiterose --bar        apply main gray theme and replace the bar layout
   omarchy-shell shell toggle whiterose.menu '{"menu":"root"}'
+
+Every theme has a light twin (whiterose-cyan-light, ...). Flip between them
+with the sun/moon bar button or the menu's Light mode row.
 EOF

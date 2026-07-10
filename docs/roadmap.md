@@ -33,10 +33,12 @@ whiterose-omarchy/
 |  |- whiterose.menu/     kinds: menu + bar-widget (Menu.qml, BarWidget.qml, Data.js)
 |  |- whiterose.<widget>/ kinds: bar-widget (Widget.qml)
 |- theme/whiterose/       colors.toml + shell.<section>.toml + backgrounds/
-|- theme/accents/         one-line accent overrides for whiterose-<accent>
-|- theme/variants/        richer color-ramp overrides, such as whiterose-gruvbox
+|- theme/whiterose-light/ the same identity inverted onto paper (mode = "light")
+|- theme/accents/         accent + light_accent overrides for whiterose-<accent>[-light]
+|- theme/variants/        richer color-ramp overrides, such as whiterose-gruvbox[-light]
 |- extensions/            optional rows for the stock menu
-|- install.sh             symlink plugins, compose themes, rescan, enable
+|- scripts/               network backend helper, theme preview generator
+|- install.sh             symlink plugins, compose themes (both modes), rescan, enable
 ```
 
 Key platform facts (from the shell source, `services/PluginRegistry.qml`):
@@ -75,11 +77,12 @@ SystemTray, Mpris, Networking).
 
 - `colors.toml`: near-black surfaces, off-white type, gray main accent,
   desaturated status colors, subtle two-stop border gradient.
-- `theme/accents/*.toml`: one-line accent overrides used to generate the
-  `whiterose-<accent>` variants.
+- `theme/accents/*.toml`: accent overrides (`accent` and `light_accent`)
+  used to generate the `whiterose-<accent>` variants and their light twins.
 - `theme/variants/*.toml`: fuller color-ramp overrides used for variants
   like `whiterose-gruvbox` while preserving gray surfaces and wallpaper.
-- `shell.bar.toml`: bar at `background-alpha 0.45`, height 30.
+- `shell.bar.toml`: bar at `background-alpha 0.45`, heights 28
+  (horizontal) and 30 (vertical).
 - `shell.controls.toml`: hairline 1 px borders, low-alpha fills, accent
   reserved for focus and hover.
 - Margins and paddings ride the shell's semantic spacing tokens, so they
@@ -136,6 +139,21 @@ Routes: `root`, `capture`, `style`, `toggle`,
 - [x] Network popout: list networks with connect/disconnect using
       `Quickshell.Networking`, replacing the nmtui jump.
 - [x] Notification center widget backed by the shell notification service.
+
+### Phase 5.5: light mode (done)
+
+- [x] `theme/whiterose-light/` base: paper surfaces, ink type, black
+      attention flash, grayscale ANSI ramp mirrored dark-on-light, light
+      maze wallpaper, aether light Neovim palette. All tones clear AA.
+- [x] Installer composes every accent and variant against both bases,
+      producing `<theme>` and `<theme>-light` twins (14 themes total).
+- [x] `whiterose.mode` bar widget: sun/moon glyph from the theme's
+      background luminance, click swaps to the twin theme.
+- [x] Menu row Toggle > Light mode with the same action.
+- [x] Installer hardening: checksum manifests guard locally modified
+      theme dirs (--force overrides), uninstall switches away from an
+      active whiterose theme first, per-theme preview.png generation,
+      shell.json backups pruned to the five newest.
 
 ### Phase 6: optional full bar (`kind: "bar"`)
 

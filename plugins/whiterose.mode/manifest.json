@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "whiterose.mode",
+  "name": "Whiterose Mode",
+  "version": "1.0.0",
+  "author": "bjarneo",
+  "license": "MIT",
+  "description": "Sun/moon button that swaps the active theme with its light or dark twin.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Whiterose mode",
+    "description": "Toggle between the light and dark twin of the active theme",
+    "category": "System",
+    "allowMultiple": false
+  }
+}

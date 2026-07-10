@@ -32,21 +32,49 @@ light itself. Accent `#e8e8e8` marks focus and selection, the alarm is
 a pure white flash, and the ANSI ramp is grayscale by design, so
 terminals render in tone rather than color.
 
-Accent variants live in `theme/accents/*.toml` as one-line overrides. The
-installer copies `theme/whiterose/` into real Omarchy theme directories and
+Accent variants live in `theme/accents/*.toml` as tiny overrides with two
+keys: `accent` for the dark base and `light_accent` for the light one. The
+installer copies the base theme into real Omarchy theme directories and
 patches only accent-driven fields: `Color.accent`, Hyprland's active border,
 shell control focus/selection, and the Neovim accent/cursor. The gray accent
-is the main `whiterose` theme; other accents install as `whiterose-<accent>`.
+is the main `whiterose` theme; other accents install as `whiterose-<accent>`
+plus a `whiterose-<accent>-light` twin.
 
 Richer variants live in `theme/variants/*.toml`. `whiterose-gruvbox` keeps
 the same gray backgrounds, foreground ramp, bar chrome, and wallpaper, then
 overrides only color roles with desaturated Gruvbox-inspired reds, yellows,
 greens, blues, and purples that pass AA contrast on the gray base.
+`whiterose-gruvbox-light` does the same on paper with a deeper, AA-checked
+gruvbox-light ramp from `theme/variants/gruvbox-light.toml`.
 
 Accessibility: every text tone clears WCAG AA against `bg` (#1e1e1e):
 fg 10.7:1, dark_fg 6.9:1, muted 5.2:1, accent 13.6:1, white attention
 15.3:1. If you darken `muted` for looks, keep it at or above 4.5:1; it
 colors every caption and hint in the suite.
+
+## Light mode
+
+`theme/whiterose-light/` is a second base theme: the same monochrome
+identity inverted onto warm paper. `colors.toml` carries `mode = "light"`,
+which Omarchy propagates on `omarchy theme set` (GNOME color-scheme,
+terminals, Neovim), so a light theme is simply a theme whose palette is
+light; there is no separate runtime switch. The installer composes every
+accent and variant against both bases, so each theme has a twin named
+`<theme>-light`.
+
+The light palette keeps the dark theme's discipline, mirrored: ink
+hairlines, a black attention flash, and a grayscale ANSI ramp spread
+dark-on-light. Contrast on bg (#f4f2ee): fg 12.8:1, dark_fg 7.9:1,
+muted 4.6:1, accent 11.8:1, black attention 18.8:1. Light accent values
+in `theme/accents/*.toml` all clear 4.5:1 on paper.
+
+Switch twins with the `whiterose.mode` bar button, the menu's Light mode
+row, or by hand:
+
+```bash
+omarchy theme set whiterose-light
+omarchy theme set whiterose-cyan-light
+```
 
 The `shell.<section>.toml` files replace only that section of the
 generated `shell.toml`, so the theme keeps inheriting upstream defaults

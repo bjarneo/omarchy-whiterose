@@ -91,7 +91,15 @@ scripts/whiterose-network-backend auto    # prefer NM, then iwd, then iw
 
 The helper checks existing `~/.bashrc` and `~/.zshrc` first. It updates the
 `whiterose.network` entry in `~/.config/omarchy/shell.json`; it only edits
-shell rc files when passed `--persist-env`.
+shell rc files when passed `--persist-env`. The shell.json key wins; the
+`WHITEROSE_NETWORK_BACKEND` export is a fallback for sessions that inherit
+it. On the iwd backend the passphrase is passed to `iwctl` over stdin, so
+it never appears in process arguments.
+
+Note: the read-only `iw` fallback runs `iw dev <iface> scan`, which needs
+CAP_NET_ADMIN on most kernels. Without it the popout reports "iw scan
+failed"; prefer the NetworkManager or iwd backends, whose daemons scan on
+your behalf.
 
 ## whiterose.bluetooth
 
@@ -120,6 +128,15 @@ player is actually playing.
 Hidden entirely on machines without a battery. Click opens the system
 menu.
 
+## whiterose.mode
+
+Sun/moon button that swaps the active theme with its light or dark twin
+(`<name>` and `<name>-light`; the stock catppuccin/catppuccin-latte pair is
+special-cased). The glyph follows the active theme's background luminance,
+so it stays correct no matter how the theme was switched. If no twin is
+installed, a notification says so. The same action is available as the
+menu's Light mode row under Toggle.
+
 ## whiterose.omni
 
 "/" button that toggles the stock Omarchy launcher (`omarchy.launcher`).
@@ -132,7 +149,8 @@ Power glyph that opens the system section of the Whiterose menu.
 
 Invisible until `omarchy-update-available` reports an update (checked
 hourly), then a single urgent glyph. Click runs the update in a floating
-terminal.
+terminal; after a click the widget rechecks every two minutes for half an
+hour so the glyph clears soon after the update finishes.
 
 ## whiterose.notifications
 

@@ -1,0 +1,42 @@
+mode = "light"
+
+# Whiterose light: the same monochrome identity inverted onto paper. The
+# dark theme's thesis is "identity is light itself"; here it is ink. No
+# hue anywhere: graphite type on warm paper, attention is a pure black
+# flash, and the ANSI ramp is grayscale spread dark-on-light so terminals
+# render in tone rather than color.
+#
+# Contrast on bg (#f4f2ee): fg 12.8:1, dark_fg 7.9:1, muted 4.6:1,
+# accent 11.8:1, black attention 18.8:1. Every text tone clears WCAG AA.
+
+accent = "#303030"
+
+bg = "#f4f2ee"
+dark_bg = "#eae7e1"
+darker_bg = "#dedbd4"
+lighter_bg = "#e7e4de"
+selection = "#d4d1ca"
+muted = "#6e6e6e"
+dark_fg = "#4a4a4a"
+fg = "#2a2a2a"
+light_fg = "#1c1c1c"
+bright_fg = "#101010"
+
+red = "#4b4b4b"
+yellow = "#3b3b3b"
+orange = "#434343"
+green = "#2d2d2d"
+cyan = "#555555"
+blue = "#353535"
+magenta = "#5b5b5b"
+brown = "#6b6b6b"
+
+bright_red = "#2f2f2f"
+bright_yellow = "#1f1f1f"
+bright_green = "#151515"
+bright_cyan = "#393939"
+bright_blue = "#232323"
+bright_magenta = "#414141"
+
+# Ink into mid-gray; the only "color" is depth of tone.
+hyprland_active_border = "rgba(303030ee) rgba(8a8a8aee) 45deg"
