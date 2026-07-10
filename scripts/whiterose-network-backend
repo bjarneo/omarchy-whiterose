@@ -19,6 +19,10 @@ Backends:
 
 The script checks existing ~/.bashrc and ~/.zshrc first. It does not create or
 edit shell rc files unless --persist-env is passed.
+
+Precedence in the widget: the shell.json `backend` key wins; the exported
+WHITEROSE_NETWORK_BACKEND variable is only a fallback when that key is absent
+(and only takes effect in sessions that actually inherit the export).
 EOF
 }
 

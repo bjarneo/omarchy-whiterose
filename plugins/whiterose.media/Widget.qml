@@ -26,7 +26,8 @@ BarWidget {
 
   readonly property string label: {
     var text = artist ? artist + " - " + title : title
-    var max = Number(setting("maxLength", 28))
+    // Floor at 4 so `max - 3` below can never go negative on a bad setting.
+    var max = Math.max(4, Number(setting("maxLength", 28)) || 28)
     return text.length > max ? text.slice(0, max - 3) + "..." : text
   }
 

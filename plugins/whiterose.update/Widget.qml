@@ -11,6 +11,7 @@ BarWidget {
 
   property bool updateAvailable: false
   property string updateLine: ""
+  property int recheckRemaining: 0
 
   visible: updateAvailable
   implicitWidth: visible ? button.implicitWidth : 0
@@ -24,7 +25,12 @@ BarWidget {
     active: true
     tooltipText: root.updateLine || "Update available"
     onPressed: function() {
-      if (root.bar) root.bar.run("omarchy-launch-floating-terminal-with-presentation omarchy-update")
+      if (!root.bar) return
+      root.bar.run("omarchy-launch-floating-terminal-with-presentation omarchy-update")
+      // Poll for a while after launching the update so the glyph clears
+      // shortly after it finishes instead of lingering until the hourly check.
+      root.recheckRemaining = 15
+      recheckTimer.restart()
     }
   }
 
@@ -37,6 +43,7 @@ BarWidget {
     }
     onExited: function(exitCode) {
       root.updateAvailable = exitCode === 0
+      if (!root.updateAvailable) recheckTimer.stop()
     }
   }
 
@@ -46,5 +53,19 @@ BarWidget {
     repeat: true
     triggeredOnStart: true
     onTriggered: if (!checkProc.running) checkProc.running = true
+  }
+
+  Timer {
+    id: recheckTimer
+    interval: 120000
+    repeat: true
+    onTriggered: {
+      if (root.recheckRemaining <= 0) {
+        stop()
+        return
+      }
+      root.recheckRemaining--
+      if (!checkProc.running) checkProc.running = true
+    }
   }
 }

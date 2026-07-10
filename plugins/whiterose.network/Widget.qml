@@ -25,7 +25,9 @@ Panel {
   readonly property var networkDevices: Networking.devices ? Networking.devices.values : []
   readonly property var wifiDevice: findDevice(DeviceType.Wifi)
   readonly property var wifiNetworkObjects: wifiDevice && wifiDevice.networks ? wifiDevice.networks.values : []
-  readonly property string configuredBackend: normalizedBackend(String(setting("backend", "auto")))
+  // shell.json `backend` wins; WHITEROSE_NETWORK_BACKEND is the fallback for
+  // sessions configured via `whiterose-network-backend --persist-env`.
+  readonly property string configuredBackend: normalizedBackend(String(setting("backend", Quickshell.env("WHITEROSE_NETWORK_BACKEND") || "auto")))
   readonly property bool networkManagerUsable: networkManagerAvailable && wifiDevice !== null
   property bool iwdAvailable: false
   readonly property bool useNetworkManager: configuredBackend !== "iwd" && configuredBackend !== "iw" && networkManagerUsable
@@ -192,14 +194,20 @@ Panel {
     actionKind = kind
     failureSsid = ""
     failureReason = ""
+    // The passphrase travels over stdin (written in onStarted), never as an
+    // argument: argv is world-readable in /proc/*/cmdline while the process
+    // runs. `read` and `printf` are bash builtins, so the secret never
+    // appears in any process's argument list, including iwctl's.
+    iwdActionProc.pendingSecret = passphrase || ""
+    iwdActionProc.sendSecret = kind === "connect"
+    iwdActionProc.stdinEnabled = kind === "connect"
     iwdActionProc.command = [
       "bash",
       "-lc",
-      "iface=${WHITEROSE_NETWORK_IFACE:-}; if [[ -z $iface ]]; then iface=$(iw dev 2>/dev/null | awk '$1 == \"Interface\" { print $2; exit }'); fi; [[ -n $iface ]] || { echo 'no wireless interface' >&2; exit 2; }; action=$1; ssid=$2; passphrase=$3; case $action in connect) if [[ -n $passphrase ]]; then iwctl --passphrase \"$passphrase\" station \"$iface\" connect \"$ssid\"; else iwctl --dont-ask station \"$iface\" connect \"$ssid\"; fi ;; disconnect) iwctl station \"$iface\" disconnect ;; *) echo \"unknown iwd action: $action\" >&2; exit 2 ;; esac",
+      "iface=${WHITEROSE_NETWORK_IFACE:-}; if [[ -z $iface ]]; then iface=$(iw dev 2>/dev/null | awk '$1 == \"Interface\" { print $2; exit }'); fi; [[ -n $iface ]] || { echo 'no wireless interface' >&2; exit 2; }; action=$1; ssid=$2; case $action in connect) IFS= read -r passphrase || passphrase=\"\"; if [[ -n $passphrase ]]; then printf '%s\\n' \"$passphrase\" | iwctl station \"$iface\" connect \"$ssid\"; else iwctl --dont-ask station \"$iface\" connect \"$ssid\"; fi ;; disconnect) iwctl station \"$iface\" disconnect ;; *) echo \"unknown iwd action: $action\" >&2; exit 2 ;; esac",
       "whiterose-iwd",
       kind,
-      targetSsid || "",
-      passphrase || ""
+      targetSsid || ""
     ]
     iwdActionProc.running = true
     actionTimeout.restart()
@@ -661,9 +669,18 @@ Panel {
   Process {
     id: iwdActionProc
     property string stderrText: ""
+    property string pendingSecret: ""
+    property bool sendSecret: false
     stderr: StdioCollector {
       waitForEnd: true
       onStreamFinished: iwdActionProc.stderrText = String(text || "").trim()
+    }
+    // Always send one line on connect, even when empty: the script's `read`
+    // would otherwise block until the action timeout on known networks.
+    onStarted: {
+      if (sendSecret) write(pendingSecret + "\n")
+      sendSecret = false
+      pendingSecret = ""
     }
     onExited: function(exitCode) {
       actionTimeout.stop()
