@@ -5,12 +5,12 @@
   "version": "1.0.0",
   "author": "bjarneo",
   "license": "MIT",
-  "description": "Volume glyph with wheel control, mute toggle, and a hairline slider popout.",
+  "description": "Volume glyph with wheel control, sink picker, and microphone mute.",
   "kinds": ["bar-widget"],
   "entryPoints": { "barWidget": "Widget.qml" },
   "barWidget": {
     "displayName": "Whiterose audio",
-    "description": "Output volume: click for slider, wheel to adjust, right click mutes",
+    "description": "Output volume: click for sink picker, wheel to adjust, right click mutes",
     "category": "Audio",
     "allowMultiple": false
   }

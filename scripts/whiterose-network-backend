@@ -3,135 +3,65 @@
 set -euo pipefail
 
 shell_json="$HOME/.config/omarchy/shell.json"
-backend="${1:-status}"
-persist_env=false
+command="${1:-status}"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/whiterose-network-backend <status|auto|nm|iwd|iw|fix-nm> [--persist-env]
+Usage: scripts/whiterose-network-backend <status|fix-nm>
 
-Backends:
-  auto    Prefer NetworkManager, then iwd, then read-only iw scan.
-  nm      Prefer NetworkManager. The widget falls back to iwd/iw if NM is unavailable.
-  iwd     Use iwd/iwctl for connect/disconnect and iw for scan data.
-  iw      Force read-only iw scan mode.
-  fix-nm  Try to enable/start NetworkManager; select iwd or iw if that fails.
-
-The script checks existing ~/.bashrc and ~/.zshrc first. It does not create or
-edit shell rc files unless --persist-env is passed.
-
-Precedence in the widget: the shell.json `backend` key wins; the exported
-WHITEROSE_NETWORK_BACKEND variable is only a fallback when that key is absent
-(and only takes effect in sessions that actually inherit the export).
+Whiterose.network is NetworkManager-only. This helper reports or repairs
+NetworkManager availability; it no longer switches widget backends.
 EOF
 }
 
-while (($#)); do
-  case "$1" in
-    status|auto|nm|iwd|iw|fix-nm)
-      backend="$1"
-      ;;
-    --persist-env)
-      persist_env=true
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "unknown argument: $1" >&2
-      usage >&2
-      exit 1
-      ;;
-  esac
-  shift
-done
+if (($# > 1)); then
+  echo "too many arguments" >&2
+  usage >&2
+  exit 1
+fi
 
-existing_rc_files() {
-  local files=()
-  [[ -f "$HOME/.bashrc" ]] && files+=("$HOME/.bashrc")
-  [[ -f "$HOME/.zshrc" ]] && files+=("$HOME/.zshrc")
-  printf '%s\n' "${files[@]}"
-}
-
-print_rc_status() {
-  local files
-  mapfile -t files < <(existing_rc_files)
-  if ((${#files[@]} == 0)); then
-    echo "shell rc: none found (~/.bashrc, ~/.zshrc)"
-    return
-  fi
-  echo "shell rc found:"
-  printf '  %s\n' "${files[@]}"
-}
-
-persist_backend_env() {
-  local value="$1"
-  local files file tmp
-  mapfile -t files < <(existing_rc_files)
-  if ((${#files[@]} == 0)); then
-    echo "not persisting env: no existing ~/.bashrc or ~/.zshrc" >&2
-    return 1
-  fi
-
-  for file in "${files[@]}"; do
-    tmp="$(mktemp)"
-    if [[ -f "$file" ]]; then
-      grep -v '^export WHITEROSE_NETWORK_BACKEND=' "$file" >"$tmp" || true
-    fi
-    printf 'export WHITEROSE_NETWORK_BACKEND=%q\n' "$value" >>"$tmp"
-    mv "$tmp" "$file"
-    echo "persisted WHITEROSE_NETWORK_BACKEND=$value in $file"
-  done
-}
-
-set_shell_json_backend() {
-  local value="$1"
-  python3 - "$shell_json" "$value" <<'PY'
-import json
-import os
-import sys
-
-path = sys.argv[1]
-backend = sys.argv[2]
-
-config = {"version": 1}
-if os.path.exists(path):
-    with open(path) as f:
-        config = json.load(f)
-
-bar = config.setdefault("bar", {})
-layout = bar.setdefault("layout", {})
-found = False
-for section in ("left", "center", "right"):
-    entries = layout.get(section)
-    if not isinstance(entries, list):
-        continue
-    for entry in entries:
-        if isinstance(entry, dict) and entry.get("id") == "whiterose.network":
-            entry["backend"] = backend
-            found = True
-
-if not found:
-    raise SystemExit("whiterose.network was not found in shell.json bar.layout; run ./install.sh --bar first")
-
-with open(path, "w") as f:
-    json.dump(config, f, indent=2)
-    f.write("\n")
-PY
-  echo "set whiterose.network backend=$value in $shell_json"
-  omarchy-shell shell reloadConfig >/dev/null 2>&1 || true
-}
+case "$command" in
+  status|fix-nm)
+    ;;
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  auto|nm|iwd|iw)
+    echo "backend '$command' is obsolete; whiterose.network uses NetworkManager only" >&2
+    usage >&2
+    exit 1
+    ;;
+  *)
+    echo "unknown argument: $command" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
 
 networkmanager_ok() {
   command -v nmcli >/dev/null 2>&1 || return 1
   nmcli general status >/dev/null 2>&1 || return 1
-  nmcli radio wifi on >/dev/null 2>&1 || true
 }
 
-iwd_ok() {
-  command -v iwctl >/dev/null 2>&1 || return 1
-  iwctl station list >/dev/null 2>&1 || return 1
+print_stale_backend_status() {
+  [[ -f "$shell_json" ]] || return 0
+  python3 - "$shell_json" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as f:
+    config = json.load(f)
+
+layout = config.get("bar", {}).get("layout", {})
+for section in ("left", "center", "right"):
+    for entry in layout.get(section, []) or []:
+        if isinstance(entry, dict) and entry.get("id") == "whiterose.network":
+            if "backend" in entry:
+                print("stale shell.json backend key: ignored")
+            raise SystemExit(0)
+PY
 }
 
 fix_networkmanager() {
@@ -150,12 +80,11 @@ fix_networkmanager() {
 
   echo "attempting to enable/start NetworkManager.service"
   sudo systemctl enable --now NetworkManager.service >/dev/null
+  nmcli radio wifi on >/dev/null 2>&1 || true
   networkmanager_ok
 }
 
 print_status() {
-  print_rc_status
-  echo
   if command -v nmcli >/dev/null 2>&1; then
     if nmcli general status >/dev/null 2>&1; then
       echo "NetworkManager: ok"
@@ -166,71 +95,20 @@ print_status() {
     echo "NetworkManager: nmcli missing"
   fi
 
-  if iwd_ok; then
-    echo "iwd: ok"
-  elif command -v iwctl >/dev/null 2>&1; then
-    echo "iwd: iwctl present, daemon not responding"
-  else
-    echo "iwd: iwctl missing"
-  fi
-
-  if command -v iw >/dev/null 2>&1; then
-    local iface
-    iface="$(iw dev 2>/dev/null | awk '$1 == "Interface" { print $2; exit }')"
-    if [[ -n "$iface" ]]; then
-      echo "iw: ok ($iface)"
-    else
-      echo "iw: present, no wireless interface found"
-    fi
-  else
-    echo "iw: missing"
-  fi
-
-  if [[ -f "$shell_json" ]]; then
-    python3 - "$shell_json" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1]) as f:
-    config = json.load(f)
-layout = config.get("bar", {}).get("layout", {})
-for section in ("left", "center", "right"):
-    for entry in layout.get(section, []) or []:
-        if isinstance(entry, dict) and entry.get("id") == "whiterose.network":
-            print("whiterose.network backend:", entry.get("backend", "auto"))
-            raise SystemExit(0)
-print("whiterose.network backend: not in bar layout")
-PY
-  else
-    echo "shell config: $shell_json missing"
-  fi
+  echo "whiterose.network: NetworkManager-only"
+  print_stale_backend_status
 }
 
-case "$backend" in
+case "$command" in
   status)
     print_status
     ;;
-  auto|nm|iwd|iw)
-    print_rc_status
-    set_shell_json_backend "$backend"
-    if [[ "$persist_env" == true ]]; then
-      persist_backend_env "$backend"
-    fi
-    ;;
   fix-nm)
-    print_rc_status
     if fix_networkmanager; then
-      set_shell_json_backend nm
-      [[ "$persist_env" == true ]] && persist_backend_env nm
-      echo "NetworkManager is available; using nm backend"
-    elif iwd_ok; then
-      set_shell_json_backend iwd
-      [[ "$persist_env" == true ]] && persist_backend_env iwd
-      echo "NetworkManager fix failed; using iwd backend"
+      echo "NetworkManager is available; whiterose.network can use it"
     else
-      set_shell_json_backend iw
-      [[ "$persist_env" == true ]] && persist_backend_env iw
-      echo "NetworkManager fix failed; using read-only iw fallback backend"
+      echo "NetworkManager fix failed" >&2
+      exit 1
     fi
     ;;
 esac

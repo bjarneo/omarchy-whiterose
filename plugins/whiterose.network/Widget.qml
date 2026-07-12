@@ -1,14 +1,11 @@
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
 import qs.Commons
 import qs.Ui
 
-// Bar state still comes from `omarchy-network-status --verbose`, which reads
-// kernel/ip/iw state correctly on iwd systems. The popout prefers the
-// Quickshell.Networking NetworkManager backend for Wi-Fi actions, then iwd
-// via iwctl, and finally a read-only iw scan when neither manager is usable.
+// NetworkManager-backed connection state and Wi-Fi picker. Bar state still
+// comes from `omarchy-network-status --verbose` for interface/IP detail.
 Panel {
   id: root
   moduleName: "whiterose.network"
@@ -25,21 +22,10 @@ Panel {
   readonly property var networkDevices: Networking.devices ? Networking.devices.values : []
   readonly property var wifiDevice: findDevice(DeviceType.Wifi)
   readonly property var wifiNetworkObjects: wifiDevice && wifiDevice.networks ? wifiDevice.networks.values : []
-  // shell.json `backend` wins; WHITEROSE_NETWORK_BACKEND is the fallback for
-  // sessions configured via `whiterose-network-backend --persist-env`.
-  readonly property string configuredBackend: normalizedBackend(String(setting("backend", Quickshell.env("WHITEROSE_NETWORK_BACKEND") || "auto")))
-  readonly property bool networkManagerUsable: networkManagerAvailable && wifiDevice !== null
-  property bool iwdAvailable: false
-  readonly property bool useNetworkManager: configuredBackend !== "iwd" && configuredBackend !== "iw" && networkManagerUsable
-  readonly property bool useIwd: !useNetworkManager && configuredBackend !== "iw" && iwdAvailable
-  readonly property string backendLabel: useNetworkManager ? "nm"
-    : (useIwd ? (configuredBackend === "iwd" ? "iwd" : "iwd fallback")
-      : (configuredBackend === "iw" ? "iw" : "iw fallback"))
-  readonly property var networkRows: useNetworkManager ? wifiNetworks : iwNetworks
+  readonly property bool wifiAvailable: networkManagerAvailable && wifiDevice !== null
+  readonly property var networkRows: wifiNetworks
 
   property var wifiNetworks: []
-  property var iwNetworks: []
-  property string iwScanError: ""
   property int cursor: 0
   property bool scanning: false
   property string actionSsid: ""
@@ -80,11 +66,6 @@ Panel {
     return null
   }
 
-  function normalizedBackend(value) {
-    var v = String(value || "auto").toLowerCase()
-    return (v === "nm" || v === "iwd" || v === "iw" || v === "auto") ? v : "auto"
-  }
-
   function wifiIconFor(strength) {
     var icons = ["\u{f092f}", "\u{f091f}", "\u{f0922}", "\u{f0925}", "\u{f0928}"]
     if (strength < 0) return icons[4]
@@ -115,7 +96,11 @@ Panel {
   }
 
   function syncWifiNetworks() {
-    if (!useNetworkManager) return
+    if (!wifiAvailable) {
+      wifiNetworks = []
+      scanning = false
+      return
+    }
     var rows = []
     var networks = wifiNetworkObjects || []
     for (var i = 0; i < networks.length; i++) {
@@ -126,33 +111,6 @@ Panel {
       if (row) rows.push(row)
     }
     wifiNetworks = sortWifiRows(rows)
-    scanning = false
-  }
-
-  function updateIwNetworks(raw) {
-    var rows = []
-    var seen = {}
-    var lines = String(raw || "").split("\n")
-    for (var i = 0; i < lines.length; i++) {
-      var parts = lines[i].split("\t")
-      var name = parts[0] || ""
-      if (!name || seen[name]) continue
-      seen[name] = true
-      var dbm = parseFloat(parts[1] || "")
-      if (!isNaN(dbm) && dbm < -200) dbm = dbm / 100
-      var signal = isNaN(dbm) ? -1 : Math.max(0, Math.min(100, Math.round(2 * (dbm + 100))))
-      rows.push({
-        backend: useIwd ? "iwd" : "iw",
-        network: null,
-        connected: kind === "wifi" && ssid !== "" && name === ssid,
-        known: false,
-        ssid: name,
-        signal: signal,
-        security: parts[2] === "1" ? "protected" : WifiSecurityType.Open
-      })
-    }
-    iwNetworks = sortWifiRows(rows)
-    iwScanError = ""
     scanning = false
   }
 
@@ -185,31 +143,6 @@ Panel {
     failureSsid = ""
     failureReason = ""
     callback(network)
-    actionTimeout.restart()
-  }
-
-  function runIwdAction(kind, targetSsid, passphrase) {
-    if (busy) return
-    actionSsid = targetSsid || ssid || ""
-    actionKind = kind
-    failureSsid = ""
-    failureReason = ""
-    // The passphrase travels over stdin (written in onStarted), never as an
-    // argument: argv is world-readable in /proc/*/cmdline while the process
-    // runs. `read` and `printf` are bash builtins, so the secret never
-    // appears in any process's argument list, including iwctl's.
-    iwdActionProc.pendingSecret = passphrase || ""
-    iwdActionProc.sendSecret = kind === "connect"
-    iwdActionProc.stdinEnabled = kind === "connect"
-    iwdActionProc.command = [
-      "bash",
-      "-lc",
-      "iface=${WHITEROSE_NETWORK_IFACE:-}; if [[ -z $iface ]]; then iface=$(iw dev 2>/dev/null | awk '$1 == \"Interface\" { print $2; exit }'); fi; [[ -n $iface ]] || { echo 'no wireless interface' >&2; exit 2; }; action=$1; ssid=$2; case $action in connect) IFS= read -r passphrase || passphrase=\"\"; if [[ -n $passphrase ]]; then printf '%s\\n' \"$passphrase\" | iwctl station \"$iface\" connect \"$ssid\"; else iwctl --dont-ask station \"$iface\" connect \"$ssid\"; fi ;; disconnect) iwctl station \"$iface\" disconnect ;; *) echo \"unknown iwd action: $action\" >&2; exit 2 ;; esac",
-      "whiterose-iwd",
-      kind,
-      targetSsid || ""
-    ]
-    iwdActionProc.running = true
     actionTimeout.restart()
   }
 
@@ -250,18 +183,10 @@ Panel {
   }
 
   function connectKnown(targetSsid) {
-    if (useIwd) {
-      runIwdAction("connect", targetSsid, "")
-      return
-    }
     runNetworkAction("connect", networkForSsid(targetSsid), function(network) { network.connect() })
   }
 
   function connectWithPassphrase(targetSsid, passphrase) {
-    if (useIwd) {
-      runIwdAction("connect", targetSsid, passphrase)
-      return
-    }
     runNetworkAction("connect", networkForSsid(targetSsid), function(network) { network.connectWithPsk(passphrase) })
   }
 
@@ -271,13 +196,6 @@ Panel {
 
   function activateRow(row) {
     if (!row || busy) return
-    if (row.backend === "iw") return
-    if (row.backend === "iwd") {
-      if (row.connected) runIwdAction("disconnect", row.ssid, "")
-      else if (isProtected(row.security)) openPasswordPrompt(row.ssid)
-      else connectKnown(row.ssid)
-      return
-    }
     if (!row.network) return
     if (row.connected) {
       disconnect(row.network)
@@ -297,13 +215,9 @@ Panel {
 
   function refresh(scanWifi) {
     if (!statusProc.running) statusProc.running = true
-    if (!useNetworkManager) {
+    if (!wifiAvailable) {
       wifiNetworks = []
-      if (!iwScanProc.running) {
-        scanning = true
-        iwScanProc.command = useIwd ? iwdScanCommand() : iwScanCommand()
-        iwScanProc.running = true
-      }
+      scanning = false
       return
     }
     if (scanWifi) {
@@ -317,25 +231,9 @@ Panel {
   }
 
   function toggleWifi() {
-    if (!useNetworkManager) return
+    if (!networkManagerAvailable) return
     Networking.wifiEnabled = !Networking.wifiEnabled
     Qt.callLater(function() { refresh(true) })
-  }
-
-  function iwdScanCommand() {
-    return [
-      "bash",
-      "-lc",
-      "iface=${WHITEROSE_NETWORK_IFACE:-}; if [[ -z $iface ]]; then iface=$(iw dev 2>/dev/null | awk '$1 == \"Interface\" { print $2; exit }'); fi; [[ -n $iface ]] || { echo 'no wireless interface' >&2; exit 2; }; iwctl station \"$iface\" scan >/dev/null 2>&1 || true; iwctl station \"$iface\" get-networks rssi-dbms | awk '{ gsub(/\\033\\[[0-9;]*[A-Za-z]/, \"\"); line=$0; gsub(/^[[:space:]>]+|[[:space:]]+$/, \"\", line); if (line !~ /[[:space:]](open|psk|8021x|owe|sae)[[:space:]]+-?[0-9]+$/) next; signal=line; sub(/^.*[[:space:]]/, \"\", signal); security=line; sub(/[[:space:]]+-?[0-9]+$/, \"\", security); sub(/^.*[[:space:]]/, \"\", security); name=line; sub(/[[:space:]]+(open|psk|8021x|owe|sae)[[:space:]]+-?[0-9]+$/, \"\", name); if (name != \"\") print name \"\\t\" signal \"\\t\" (security == \"open\" ? 0 : 1) }'"
-    ]
-  }
-
-  function iwScanCommand() {
-    return [
-      "bash",
-      "-lc",
-      "iface=${WHITEROSE_NETWORK_IFACE:-}; if [[ -z $iface ]]; then iface=$(iw dev 2>/dev/null | awk '$1 == \"Interface\" { print $2; exit }'); fi; [[ -n $iface ]] || { echo 'no wireless interface' >&2; exit 2; }; iw dev \"$iface\" scan 2>/dev/null | awk 'function emit(){ if (ssid != \"\") { print ssid \"\\t\" signal \"\\t\" protected } ssid=\"\"; signal=\"\"; protected=0 } /^BSS / { emit(); next } /^[[:space:]]*signal:/ { signal=$2 } /^[[:space:]]*SSID:/ { ssid=$0; sub(/^[[:space:]]*SSID:[[:space:]]*/, \"\", ssid) } /^[[:space:]]*(RSN:|WPA:)/ { protected=1 } /^[[:space:]]*capability:/ && /Privacy/ { protected=1 } END { emit() }'"
-    ]
   }
 
   onOpenedChanged: {
@@ -350,7 +248,7 @@ Panel {
   }
 
   onWifiDeviceChanged: {
-    if (wifiDevice) wifiDevice.scannerEnabled = opened && useNetworkManager
+    if (wifiDevice) wifiDevice.scannerEnabled = opened
     syncWifiNetworks()
   }
 
@@ -360,15 +258,13 @@ Panel {
     else if (cursor < 0) cursor = 0
     else if (cursor >= networkRows.length) cursor = networkRows.length - 1
   }
-  onUseNetworkManagerChanged: refresh(true)
-  onUseIwdChanged: refresh(true)
+  onNetworkManagerAvailableChanged: refresh(true)
   onPasswordSsidChanged: if (passwordSsid === "") passwordText = ""
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
   Component.onCompleted: {
-    iwdCheckProc.running = true
     refresh(false)
   }
 
@@ -433,8 +329,8 @@ Panel {
             id: wifiToggle
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            text: root.useNetworkManager ? (Networking.wifiEnabled ? "nm on" : "nm off") : root.backendLabel
-            color: root.useNetworkManager && Networking.wifiEnabled ? Color.accent : Color.muted
+            text: root.networkManagerAvailable ? (Networking.wifiEnabled ? "nm on" : "nm off") : "nm unavailable"
+            color: root.networkManagerAvailable && Networking.wifiEnabled ? Color.accent : Color.muted
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             font.letterSpacing: 2
@@ -442,7 +338,7 @@ Panel {
             MouseArea {
               anchors.fill: parent
               anchors.margins: -Style.space(6)
-              enabled: root.useNetworkManager
+              enabled: root.networkManagerAvailable
               cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
               onClicked: root.toggleWifi()
             }
@@ -454,8 +350,8 @@ Panel {
         Text {
           visible: root.networkRows.length === 0
           width: parent.width
-          text: root.useNetworkManager ? (root.scanning ? "scanning..." : "no networks found")
-            : (root.iwScanError || (root.scanning ? "scanning with iw..." : "no networks found by iw"))
+          text: !root.networkManagerAvailable ? "NetworkManager unavailable"
+            : (!root.wifiDevice ? "no Wi-Fi device" : (root.scanning ? "scanning..." : "no networks found"))
           color: Color.muted
           font.family: Style.font.family
           font.pixelSize: Style.font.bodySmall
@@ -478,12 +374,10 @@ Panel {
             readonly property bool rowFailed: root.failureReason !== "" && root.failureSsid === modelData.ssid
             readonly property string statusText: {
               if (passwordOpen) return ""
-              if (modelData.backend === "iw") return modelData.connected ? "connected" : "iw scan"
               if (rowBusy && root.actionKind === "connect") return "connecting"
               if (rowBusy && root.actionKind === "disconnect") return "disconnecting"
               if (rowFailed) return root.failureReason
               if (modelData.connected) return "connected"
-              if (modelData.backend === "iwd") return root.isProtected(modelData.security) ? "passphrase" : "iwd"
               if (modelData.known) return "known"
               return ""
             }
@@ -565,7 +459,7 @@ Panel {
               MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-                enabled: !root.busy && networkRow.modelData.backend !== "iw"
+                enabled: !root.busy
                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onContainsMouseChanged: if (containsMouse) root.cursor = networkRow.index
                 onClicked: {
@@ -639,8 +533,7 @@ Panel {
 
         Text {
           width: parent.width
-          text: root.useNetworkManager ? "enter toggles    r rescans    right click wifi"
-            : (root.useIwd ? "enter toggles    r rescans    backend iwd" : "iw fallback is read-only    r rescans")
+          text: "enter toggles    r rescans    right click wifi"
           color: Color.muted
           elide: Text.ElideRight
           font.family: Style.font.family
@@ -660,65 +553,12 @@ Panel {
     }
   }
 
-  Process {
-    id: iwdCheckProc
-    command: ["bash", "-lc", "command -v iwctl >/dev/null 2>&1 && iwctl station list >/dev/null 2>&1"]
-    onExited: function(exitCode) { root.iwdAvailable = exitCode === 0 }
-  }
-
-  Process {
-    id: iwdActionProc
-    property string stderrText: ""
-    property string pendingSecret: ""
-    property bool sendSecret: false
-    stderr: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: iwdActionProc.stderrText = String(text || "").trim()
-    }
-    // Always send one line on connect, even when empty: the script's `read`
-    // would otherwise block until the action timeout on known networks.
-    onStarted: {
-      if (sendSecret) write(pendingSecret + "\n")
-      sendSecret = false
-      pendingSecret = ""
-    }
-    onExited: function(exitCode) {
-      actionTimeout.stop()
-      if (exitCode === 0) {
-        root.clearNetworkAction()
-      } else {
-        root.failureSsid = root.actionSsid
-        root.failureReason = stderrText || "iwd action failed"
-        root.actionSsid = ""
-        root.actionKind = ""
-        root.refresh(false)
-      }
-      stderrText = ""
-    }
-  }
-
   Timer {
     interval: 3000
     running: root.visible
     repeat: true
     triggeredOnStart: true
     onTriggered: if (!statusProc.running) statusProc.running = true
-  }
-
-  Process {
-    id: iwScanProc
-    stdout: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: root.updateIwNetworks(text)
-    }
-    stderr: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: root.iwScanError = String(text || "").trim()
-    }
-    onExited: function(exitCode) {
-      root.scanning = false
-      if (exitCode !== 0 && root.iwScanError === "") root.iwScanError = "iw scan failed"
-    }
   }
 
   Timer {

@@ -20,6 +20,7 @@ set -euo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 plugdir="$HOME/.config/omarchy/plugins"
 themedir="$HOME/.config/omarchy/themes"
+bindir="$HOME/.local/bin"
 base_theme="whiterose"
 manifest_name=".whiterose-manifest"
 selected_theme=""
@@ -555,7 +556,10 @@ done
 
 choose_theme
 
-mkdir -p "$plugdir" "$themedir"
+mkdir -p "$plugdir" "$themedir" "$bindir"
+
+ln -sf "$repo/scripts/whiterose-lock" "$bindir/whiterose-lock"
+echo "linked whiterose-lock"
 
 for id in "${plugins[@]}" "${optional_plugins[@]}"; do
   ln -sfT "$repo/plugins/$id" "$plugdir/$id"

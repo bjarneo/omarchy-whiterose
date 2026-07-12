@@ -12,7 +12,7 @@ follows, including the menu, popouts, and bar chrome.
 | File | Purpose |
 | --- | --- |
 | colors.toml | Monochrome: graphite surfaces, gray accent, AA contrast |
-| shell.bar.toml | Bar veil 0.45 alpha; attention is a pure white flash |
+| shell.bar.toml | Bar veil 0.72 alpha; attention is a pure white flash |
 | shell.controls.toml | Dim hairlines that switch to near-white on hover/focus |
 | neovim.lua | aether.nvim (bjarneo/aether.nvim, v3) fed the same palette |
 | backgrounds/ | Subtle dark-gray maze texture |
@@ -94,7 +94,7 @@ Useful knobs:
 
 ```toml
 [bar]
-background-alpha = 0.45   # Whiterose default bar translucency
+background-alpha = 0.72   # Whiterose default bar translucency
 
 [spacing]
 scale = 1.1               # more breathing room everywhere
@@ -104,7 +104,7 @@ base-size = 13            # rescales the whole type ramp
 ```
 
 Two transparency modes exist. The theme's `background-alpha` draws a
-subtle dark veil behind the bar (Whiterose uses 0.45, needs
+firm dark veil behind the bar (Whiterose uses 0.72, needs
 `omarchy bar transparent false`). Fully transparent with
 wallpaper-contrast text is the shell feature `omarchy bar transparent
 true`; it ignores the theme veil entirely.

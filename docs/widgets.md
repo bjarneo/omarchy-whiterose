@@ -64,42 +64,24 @@ Hidden on vertical bars and when nothing is focused.
 ## whiterose.audio
 
 Wheel adjusts volume in 5 percent steps, right or middle click mutes,
-left click opens the slider popout (arrows adjust, Enter mutes, Esc
-closes). Uses the default Pipewire sink.
+left click opens the PipeWire popout. Up/Down selects the volume slider,
+microphone mute row, or output sink; Left/Right adjusts volume while the
+slider is selected; Enter toggles or selects the highlighted row.
 
 ## whiterose.network
 
 State comes from `omarchy-network-status --verbose` every 3 seconds.
-The verbose mode reads interface state from the kernel (ip/iw), so it
-stays correct on iwd-managed Wi-Fi where the nmcli-based non-verbose
-mode (and the stock widget) report "disconnected". Tooltip shows SSID
-and signal quality, or interface and IP on ethernet. Left click opens a
-keyboard-driven popout: Up/Down selects a Wi-Fi network, Enter connects or
-disconnects, `r` rescans, and protected networks expand an inline passphrase
-field. NetworkManager is used when available; iwd uses `iwctl` for actions
-and `iw` for scan data. Right click toggles Wi-Fi power on NetworkManager.
+Tooltip shows SSID and signal quality, or interface and IP on ethernet.
+Left click opens a NetworkManager-backed popout: Up/Down selects a Wi-Fi
+network, Enter connects or disconnects, `r` rescans, and protected networks
+expand an inline passphrase field. Right click toggles Wi-Fi power.
 
-Backend setting:
+Repair NetworkManager if the popout reports it unavailable:
 
 ```bash
 scripts/whiterose-network-backend status
-scripts/whiterose-network-backend fix-nm  # use NM, fall back to iwd/iw
-scripts/whiterose-network-backend iwd     # force iwd actions
-scripts/whiterose-network-backend iw      # force read-only iw scan fallback
-scripts/whiterose-network-backend auto    # prefer NM, then iwd, then iw
+scripts/whiterose-network-backend fix-nm
 ```
-
-The helper checks existing `~/.bashrc` and `~/.zshrc` first. It updates the
-`whiterose.network` entry in `~/.config/omarchy/shell.json`; it only edits
-shell rc files when passed `--persist-env`. The shell.json key wins; the
-`WHITEROSE_NETWORK_BACKEND` export is a fallback for sessions that inherit
-it. On the iwd backend the passphrase is passed to `iwctl` over stdin, so
-it never appears in process arguments.
-
-Note: the read-only `iw` fallback runs `iw dev <iface> scan`, which needs
-CAP_NET_ADMIN on most kernels. Without it the popout reports "iw scan
-failed"; prefer the NetworkManager or iwd backends, whose daemons scan on
-your behalf.
 
 ## whiterose.bluetooth
 

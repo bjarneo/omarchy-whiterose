@@ -29,7 +29,7 @@ var TREE = [
   { id: "toggle.bar", icon: "\u{f035c}", label: "Bar", desc: "show or hide the bar", keywords: "hide show", action: "omarchy-toggle-bar" },
 
   { id: "system", icon: "", label: "System", desc: "", keywords: "power lock logout restart shutdown" },
-  { id: "system.lock", icon: "", label: "Lock", desc: "", keywords: "screen", action: "omarchy-system-lock" },
+  { id: "system.lock", icon: "", label: "Lock", desc: "", keywords: "screen", action: "whiterose-lock" },
   { id: "system.suspend", icon: "\u{f04b2}", label: "Suspend", desc: "", keywords: "sleep", action: "systemctl suspend" },
   { id: "system.power-profile", icon: "\u{f0c0b}", label: "Power profile", desc: "performance mode", keywords: "battery balanced performance saver", provider: "power-profiles" },
   { id: "system.update", icon: "", label: "Update", desc: "run omarchy update", keywords: "upgrade packages", action: "omarchy-launch-floating-terminal-with-presentation omarchy-update" },

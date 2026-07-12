@@ -23,12 +23,10 @@ Open the menu:
 omarchy-shell shell toggle whiterose.menu '{"menu":"root"}'
 ```
 
-If the network popout cannot use NetworkManager, switch or repair the backend:
+If the network popout cannot use NetworkManager, repair it first:
 
 ```bash
 scripts/whiterose-network-backend fix-nm
-scripts/whiterose-network-backend iwd
-scripts/whiterose-network-backend iw
 ```
 
 The installer symlinks plugins into `~/.config/omarchy/plugins/`, so edits
@@ -42,7 +40,7 @@ here hot-reload with `omarchy plugin rescan`.
 | whiterose.workspaces | omarchy.workspaces | Dash indicators, accent on focus |
 | whiterose.clock | omarchy.clock | HH:mm with a breathing separator, click for date |
 | whiterose.active-window | omarchy.active-window | Dimmed window title (built, not in the default layout) |
-| whiterose.audio | omarchy.audio | Glyph + hairline slider popout, wheel volume |
+| whiterose.audio | omarchy.audio | Glyph + slider, sink picker, mic mute, wheel volume |
 | whiterose.network | omarchy.network | Wi-Fi / ethernet state, keyboard network picker |
 | whiterose.bluetooth | omarchy.bluetooth | Device picker popout; right click toggles power |
 | whiterose.battery | omarchy.power | Charge glyph, urgent when low, hidden on desktops |

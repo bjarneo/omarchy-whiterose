@@ -1,0 +1,96 @@
+#!/bin/bash
+
+set -euo pipefail
+
+state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+current_dir="$state_home/omarchy/current"
+background_link="$current_dir/background"
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}/whiterose-lock"
+lock_file="$runtime_dir/lock"
+
+mkdir -p "$runtime_dir"
+exec 8>"$lock_file"
+
+run_stock_lock_tail() {
+  hyprctl switchxkblayout all 0 >/dev/null 2>&1 || true
+
+  if pgrep -x "1password" >/dev/null && command -v 1password >/dev/null 2>&1; then
+    (
+      flock -n 9 || exit 0
+      timeout --kill-after=1s 3s 1password --lock >/dev/null 2>&1 || true
+    ) 9>"${XDG_RUNTIME_DIR:-/tmp}/omarchy-1password-lock.lock" &
+  fi
+
+  pkill -f '[o]rg.omarchy.screensaver' 2>/dev/null || true
+}
+
+restore_background_after_unlock() {
+  local original_target="$1"
+  local original_path="$2"
+  local pixelated_path="$3"
+
+  (
+    for _ in {1..20}; do
+      [[ "$(omarchy-shell lock isLocked 2>/dev/null || true)" == "true" ]] && break
+      sleep 0.1
+    done
+
+    while [[ "$(omarchy-shell lock isLocked 2>/dev/null || true)" == "true" ]]; do
+      sleep 1
+    done
+
+    if [[ -n "$original_target" ]]; then
+      ln -sfn "$original_target" "$background_link"
+    elif [[ -n "$original_path" ]]; then
+      ln -sfn "$original_path" "$background_link"
+    fi
+
+    if [[ -n "$original_path" ]]; then
+      omarchy-shell background setInstant "$original_path" >/dev/null 2>&1 || true
+    fi
+
+    rm -f "$pixelated_path"
+  ) >/dev/null 2>&1 &
+}
+
+make_pixelated_background() {
+  command -v grim >/dev/null 2>&1 || return 1
+  command -v magick >/dev/null 2>&1 || return 1
+
+  local shot="$runtime_dir/screen.png"
+  local pixelated="$runtime_dir/pixelated-lock.png"
+
+  grim "$shot" >/dev/null 2>&1 || return 1
+  magick "$shot" \
+    -scale 4% \
+    -scale 2500% \
+    -brightness-contrast -8x14 \
+    "$pixelated" >/dev/null 2>&1 || return 1
+  rm -f "$shot"
+
+  printf '%s\n' "$pixelated"
+}
+
+original_target=""
+original_path=""
+if [[ -L "$background_link" ]]; then
+  original_target="$(readlink "$background_link")"
+  original_path="$(readlink -f "$background_link" 2>/dev/null || true)"
+elif [[ -e "$background_link" ]]; then
+  original_path="$(readlink -f "$background_link" 2>/dev/null || true)"
+fi
+
+pixelated_path=""
+if flock -n 8; then
+  pixelated_path="$(make_pixelated_background || true)"
+  if [[ -n "$pixelated_path" ]]; then
+    ln -sfn "$pixelated_path" "$background_link"
+  fi
+fi
+
+omarchy-shell lock lock >/dev/null
+run_stock_lock_tail
+
+if [[ -n "$pixelated_path" ]]; then
+  restore_background_after_unlock "$original_target" "$original_path" "$pixelated_path"
+fi

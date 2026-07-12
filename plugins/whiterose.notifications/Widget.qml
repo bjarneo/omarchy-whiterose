@@ -22,8 +22,8 @@ Panel {
   readonly property var activeModel: !notificationService ? null
     : (activeTab === "pending" ? notificationService.pendingModel : notificationService.pastModel)
 
-  readonly property string glyph: dnd ? "\u{f0082b}"
-    : (pendingCount > 0 ? "\u{f05a9}" : "\u{f009c}")
+  readonly property string glyph: dnd ? "\u{f009b}"
+    : (pendingCount > 0 ? "\u{f116b}" : "\u{f009a}")
 
   function refreshService() {
     if (!hostShell) {
