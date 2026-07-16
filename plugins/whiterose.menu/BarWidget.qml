@@ -2,7 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 
-// Whiterose logo button. The variant follows the bar's foreground
+// Omarchy logo button. The variant follows the bar's foreground
 // luminance, so it reads like text on dark themes, light themes, and the
 // transparent bar's wallpaper-contrast mode alike. Left click opens the
 // menu at root, right click jumps to the system section.
@@ -36,7 +36,7 @@ BarWidget {
       anchors.centerIn: parent
       width: Style.space(16)
       height: Style.space(16)
-      source: root.lightForeground ? Qt.resolvedUrl("logo-light.svg") : Qt.resolvedUrl("logo-dark.svg")
+      source: root.lightForeground ? Qt.resolvedUrl("logo-light.png") : Qt.resolvedUrl("logo-dark.png")
       sourceSize: Qt.size(Style.space(32), Style.space(32))
       smooth: true
       opacity: button.tooltipHovered ? 1 : 0.88
